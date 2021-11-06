@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container">
+    <h2>Modificar empleado</h2>
+    <hr>
+    <h4>Nombre: Santiago Benavides Macías</h4>
+    <form method="POST" action="" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <h4>Cargo</h4>
+            <select class="form-select" name="cargo" value="{{ cargo }}">
+                <option value="Vendedor">Vendedor</option>
+                <option value="Almacenista">Almacenista</option>
+                <option value="Repartidor">Repartidor</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <h4>Dirección</h4>
+            <input type="text" class="form-control" placeholder="Dirección del empleado" value="{{ address }}" name="address">
+        </div>
+        <div class="form-group">
+            <h4>Número de teléfono</h4>
+            <input type="number" class="form-control" placeholder="Número teléfono del empleado" value="{{ tel }}" name="tel">
+        </div>
+        <div class="form-group">
+            <h4>Sueldo</h4>
+            <input type="number" class="form-control" placeholder="Sueldo del empleado" value="{{ sueldo }}" name="sueldo">
+        </div>
+        <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Modificar</button>
+    </form>
+</div>
+
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container">
+    <h2>Nuevo empleado</h2>
+    <hr>
+    <form method="POST" action="" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <h4>Nombre</h4>
+            <input type="text" class="form-control" placeholder="Nombre del empleado" value="{{ name }}" name="name">
+        </div>
+        <div class="form-group">
+            <h4>Apellido(s)</h4>
+            <input type="text" class="form-control" placeholder="Apellido(s) del empleado" value="{{ l_name }}" name="l_name">
+        </div>
+        <div class="form-group">
+            <h4>Cargo</h4>
+            <select class="form-select" name="cargo" value="{{ cargo }}">
+                <option value="Vendedor">Vendedor</option>
+                <option value="Almacenista">Almacenista</option>
+                <option value="Repartidor">Repartidor</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <h4>Dirección</h4>
+            <input type="text" class="form-control" placeholder="Dirección del empleado" value="{{ address }}" name="address">
+        </div>
+        <div class="form-group">
+            <h4>Número de teléfono</h4>
+            <input type="number" class="form-control" placeholder="Número teléfono del empleado" value="{{ tel }}" name="tel">
+        </div>
+        <div class="form-group">
+            <h4>Sueldo</h4>
+            <input type="number" class="form-control" placeholder="Sueldo del empleado" value="{{ sueldo }}" name="sueldo">
+        </div>
+        <div class="form-group">
+            <h4>Contraseña</h4>
+            <input type="password" class="form-control" placeholder="Contraseña del empleado" value="{{ password }}" name="password">
+        </div>
+        <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Agregar</button>
+    </form>
+</div>
+
+{% endblock %}

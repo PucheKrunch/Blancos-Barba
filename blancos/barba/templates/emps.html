@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container">
+    <h2>Empleados registrados</h2>
+    <hr>
+    <form class="form-inline" method="POST" action="">
+        {% csrf_token %}
+        <br>
+        <input class="form-control mr-sm-2" type="search" placeholder="Introduce el nombre del empleado a buscar" aria-label="Search" name="searched" value="{{ item_searched }}">
+    </form>
+    <hr>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Nombre</th>
+                <th scope="col">Apellido(s)</th>
+                <th scope="col">Cargo</th>
+                <th scope="col">Dirección</th>
+                <th scope="col">Télefono</th>
+                <th scope="col">Sueldo</th>
+                <th scope="col">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+                    <th scope="col">1</th>
+                    <td>Santiago</td>
+                    <td>Benavides Macías</td>
+                    <td>Administrador</td>
+                    <td>Mi casa</td>
+                    <td>33 1111 2222</td>
+                    <td>$35,000.00</td>
+                    <td>Activo</td>
+                    <td><a style="padding: 5px; background-color: #0d6efd; border-radius: 5px; color: white; text-decoration: none;" href="/memp/1">Modificar</a></td>
+                </tr>
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
