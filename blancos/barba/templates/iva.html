@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container">
+    <h2>IVAs registrados</h2>
+    <hr>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Porcentaje</th>
+                <th scope="col">Fecha de aplicación</th>
+                <th scope="col">Fecha de término</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+                    <th scope="col">1</th>
+                    <td>16%</td>
+                    <td>25/09/2021</td>
+                    <td>-</td>
+                </tr>
+        </tbody>
+    </table>
+    <hr>
+    <h2>Agregar nuevo IVA</h2>
+    <h4>IVA actual: 16%</h4>
+    <hr>
+    <form method="POST" action="" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <h4>Porcentaje</h4>
+            <input type="number" class="form-control" placeholder="Porcentaje de IVA" value="{{ percent }}" name="percent">
+        </div>
+        <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Agregar</button>
+    </form>
+</div>
+
+{% endblock %}

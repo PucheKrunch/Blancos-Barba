@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container">
+    <h2>Bajas registradas</h2>
+    <hr>
+    <h4>ID Baja: 1</h4>
+    <h4>Fecha: 01/11/2021</h4>
+    <h4>Hecha por: Santiago Benavides</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">ID Producto</th>
+                <th scope="col">Descripción del producto</th>
+                <th scope="col">Cantidad dada de baja</th>
+                <th scope="col">Mótivo</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+                    <th scope="col">1</th>
+                    <td>Sábanas de seda</td>
+                    <td>2</td>
+                    <td>Empaque en mal estado</td>
+                </tr>
+                <tr>
+                    <th scope="col">2</th>
+                    <td>Cubrecama</td>
+                    <td>5</td>
+                    <td>Manchas de tinta</td>
+                </tr>
+        </tbody>
+    </table>
+    <hr>
+</div>
+
+{% endblock %}

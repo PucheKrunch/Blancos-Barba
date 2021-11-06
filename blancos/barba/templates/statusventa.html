@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container">
+    <h2>Ventas pendientes</h2>
+    <hr>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">ID Venta</th>
+                <th scope="col">Fecha</th>
+                <th scope="col">Vendedor</th>
+                <th scope="col">Cliente</th>
+                <th scope="col">Repartidor</th>
+                <th scope="col">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+                    <th scope="col">1</th>
+                    <td>02/11/2021</td>
+                    <td>Santiago Benavides</td>
+                    <td>Carlos Madrigal</td>
+                    <td>Carlos Barba</td>
+                    <td>Preparando entrega</td>
+                </tr>
+        </tbody>
+    </table>
+    <form action="" method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <p>Cambiar estado de la venta</p>
+            <select class="form-select" name="status" value="{{ status }}">
+                <option value="Preparando entrega">Preparando entrega</option>
+                <option value="Entregado">Entregado</option>
+            </select>
+            <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Cambiar</button>
+        </div>
+    </form>
+    <hr>
+</div>
+
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container">
+    <h2>Modificar cliente</h2>
+    <hr>
+    <h4>Nombre: Santiago Benavides Macías</h4>
+    <form method="POST" action="" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <h4>Número de teléfono</h4>
+            <input type="number" class="form-control" placeholder="Número teléfono del cliente" value="{{ tel }}" name="tel">
+        </div>
+        <div class="form-group">
+            <h4>Correo eléctronico</h4>
+            <input type="email" class="form-control" placeholder="Correo electrónico del cliente" value="{{ email }}" name="email">
+        </div>
+        <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Modificar</button>
+    </form>
+</div>
+
+{% endblock %}

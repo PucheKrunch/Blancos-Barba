@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container">
+    <h2>Nuevo cliente</h2>
+    <hr>
+    <form method="POST" action="" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <h4>Nombre</h4>
+            <input type="text" class="form-control" placeholder="Nombre del cliente" value="{{ name }}" name="name">
+        </div>
+        <div class="form-group">
+            <h4>Apellido(s)</h4>
+            <input type="text" class="form-control" placeholder="Apellido(s) del cliente" value="{{ l_name }}" name="l_name">
+        </div>
+        <div class="form-group">
+            <h4>Número de teléfono</h4>
+            <input type="number" class="form-control" placeholder="Número teléfono del cliente" value="{{ tel }}" name="tel">
+        </div>
+        <div class="form-group">
+            <h4>Correo electrónico</h4>
+            <input type="email" class="form-control" placeholder="Correo electrónico del cliente" value="{{ email }}" name="email">
+        </div>
+        <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Agregar</button>
+    </form>
+</div>
+
+{% endblock %}

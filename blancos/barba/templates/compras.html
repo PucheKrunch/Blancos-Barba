@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container">
+    <h2>Compras registradas</h2>
+    <hr>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">ID Compra</th>
+                <th scope="col">Fecha</th>
+                <th scope="col">Proveedor</th>
+                <th scope="col">Empleado</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+                    <th scope="col">1</th>
+                    <td>02/11/2021</td>
+                    <td>Sedas S.A. de C.V.</td>
+                    <td>Santiago Benavides</td>
+                </tr>
+        </tbody>
+    </table>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">ID Producto</th>
+                <th scope="col">Descripción del producto</th>
+                <th scope="col">Precio unitario</th>
+                <th scope="col">Cantidad</th>
+                <th scope="col">Precio</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+                    <th scope="col">1</th>
+                    <td>Sábanas de seda</td>
+                    <td>$750.00</td>
+                    <td>15</td>
+                    <td>$11250.00</td>
+                </tr>
+        </tbody>
+    </table>
+    <p><b>Subtotal: </b>$4000.00</p>
+    <p><b>IVA: </b>16%</p>
+    <p><b>Total: </b>$13050.00</p>
+    <hr>
+</div>
+
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container">
+    <h2>Productos registrados</h2>
+    <hr>
+    <form class="form-inline" method="POST" action="">
+        {% csrf_token %}
+        <br>
+        <input class="form-control mr-sm-2" type="search" placeholder="Introduce el nombre del producto a buscar" aria-label="Search" name="searched" value="{{ item_searched }}">
+    </form>
+    <hr>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Descripción</th>
+                <th scope="col">Color</th>
+                <th scope="col">Tamaño</th>
+                <th scope="col">Precio neto</th>
+                <th scope="col">Existencia</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+                    <th scope="col">1</th>
+                    <td>Sábanas de seda</td>
+                    <td>Blancas</td>
+                    <td>Matrimonial</td>
+                    <td>$750.00</td>
+                    <td>15</td>
+                    <td><a style="padding: 5px; background-color: #0d6efd; border-radius: 5px; color: white; text-decoration: none;" href="/mproduct/1">Modificar existencia</a></td>
+                </tr>
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
