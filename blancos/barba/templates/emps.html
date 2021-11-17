@@ -5,12 +5,18 @@
 <div class="container">
     <h2>Empleados registrados</h2>
     <hr>
-    <form class="form-inline" method="POST" action="">
+    <form class="form-inline" method="POST" action="{% url 'emps' %}">
         {% csrf_token %}
         <br>
-        <input class="form-control mr-sm-2" type="search" placeholder="Introduce el nombre del empleado a buscar" aria-label="Search" name="searched" value="{{ item_searched }}">
+        <input class="form-control mr-sm-2" type="search" placeholder="Introduce los apellidos del empleado a buscar" aria-label="Search" name="searched" value="{{ searched }}">
     </form>
     <hr>
+    {% if flag == 2 %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            No se encontró ningún empleado con esos apellidos.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
     <table class="table">
         <thead>
             <tr>
@@ -25,28 +31,19 @@
             </tr>
         </thead>
         <tbody>
+            {% for emp in empleados %}
                 <tr>
-                    <th scope="col">1</th>
-                    <td>Santiago</td>
-                    <td>Benavides</td>
-                    <td>Administrador</td>
-                    <td>Mi casa</td>
-                    <td>33 1111 2222</td>
-                    <td>$35,000.00</td>
-                    <td>Activo</td>
-                    <td><a style="padding: 5px; background-color: #0d6efd; border-radius: 5px; color: white; text-decoration: none;" href="/memp/1">Modificar</a></td>
+                    <th scope="col">{{emp.id}}</th>
+                    <td>{{emp.nombre}}</td>
+                    <td>{{emp.apellidos}}</td>
+                    <td>{{emp.cargo}}</td>
+                    <td>{{emp.direccion}}</td>
+                    <td>{{emp.telefono}}</td>
+                    <td>${{emp.sueldo}}</td>
+                    <td>{{emp.status}}</td>
+                    <td><a style="padding: 5px; background-color: #0d6efd; border-radius: 5px; color: white; text-decoration: none;" href="/memp/{{emp.id}}">Modificar</a></td>
                 </tr>
-                <tr>
-                    <th scope="col">2</th>
-                    <td>Carlos</td>
-                    <td>Barba</td>
-                    <td>Repartidor</td>
-                    <td>Su casa</td>
-                    <td>33 1111 3333</td>
-                    <td>$12,000.00</td>
-                    <td>Activo</td>
-                    <td><a style="padding: 5px; background-color: #0d6efd; border-radius: 5px; color: white; text-decoration: none;" href="/memp/1">Modificar</a></td>
-                </tr>
+            {% endfor %}
         </tbody>
     </table>
 </div>

@@ -2,14 +2,14 @@ from django.db import models
 
 # Create your models here.
 class Empleado(models.Model):
-    nombre = models.CharField(max_length=50,null=True,blank=True)
-    apellidos = models.CharField(max_length=50,null=True,blank=True)
-    sueldo = models.FloatField(null=True,blank=True)
-    cargo = models.CharField(max_length=50,null=True,blank=True)
-    direccion = models.CharField(max_length=50,null=True,blank=True)
+    nombre = models.CharField(max_length=50)
+    apellidos = models.CharField(max_length=50)
+    sueldo = models.FloatField(null=True)
+    cargo = models.CharField(max_length=50)
+    direccion = models.CharField(max_length=50)
     status = models.CharField(max_length=50,null=True,blank=True)
-    password = models.CharField(max_length=50,null=True,blank=True)
-    telefono = models.CharField(max_length=50,null=True,blank=True)
+    password = models.CharField(max_length=50)
+    telefono = models.CharField(max_length=50)
 
     def __str__(self):
         return self.nombre + ' ' + self.apellidos

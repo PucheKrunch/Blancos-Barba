@@ -5,28 +5,47 @@
 <div class="container">
     <h2>Modificar empleado</h2>
     <hr>
-    <h4>Nombre: Santiago Benavides Macías</h4>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                {{message}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    <h4>Nombre: {{empleado.nombre}} {{empleado.apellidos}}</h4>
+    <h4>Cargo Actual: {{empleado.cargo}}</h4>
+    <hr>
     <form method="POST" action="" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="form-group">
             <h4>Cargo</h4>
-            <select class="form-select" name="cargo" value="{{ cargo }}">
+            <select class="form-select" name="cargo" value="{{ empleado.cargo }}">
+                <option value="" selected disabled hidden>Escoge un cargo</option>
+                <option value="Administrador">Administrador</option>
                 <option value="Vendedor">Vendedor</option>
                 <option value="Almacenista">Almacenista</option>
                 <option value="Repartidor">Repartidor</option>
             </select>
         </div>
         <div class="form-group">
+            <h4>Status</h4>
+            <select class="form-select" name="status" value="{{ empleado.status }}">
+                <option value="Activo">Activo</option>
+                <option value="Inactivo">Inactivo</option>
+            </select>
+        </div>
+        <div class="form-group">
             <h4>Dirección</h4>
-            <input type="text" class="form-control" placeholder="Dirección del empleado" value="{{ address }}" name="address">
+            <input type="text" class="form-control" placeholder="Dirección del empleado" value="{{ empleado.direccion }}" name="direccion">
         </div>
         <div class="form-group">
             <h4>Número de teléfono</h4>
-            <input type="number" class="form-control" placeholder="Número teléfono del empleado" value="{{ tel }}" name="tel">
+            <input type="number" class="form-control" placeholder="Número teléfono del empleado" value="{{ empleado.telefono }}" name="telefono">
         </div>
         <div class="form-group">
             <h4>Sueldo</h4>
-            <input type="number" class="form-control" placeholder="Sueldo del empleado" value="{{ sueldo }}" name="sueldo">
+            <input type="number" class="form-control" placeholder="Sueldo del empleado" value="{{ empleado.sueldo }}" name="sueldo">
         </div>
         <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Modificar</button>
     </form>

@@ -3,21 +3,31 @@
 {% block content %}
 
 <div class="container">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                {{message}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
     <h2>Nuevo empleado</h2>
     <hr>
-    <form method="POST" action="" enctype="multipart/form-data">
+    <form method="POST" action="{% url 'addemp' %}" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="form-group">
             <h4>Nombre</h4>
-            <input type="text" class="form-control" placeholder="Nombre del empleado" value="{{ name }}" name="name">
+            <input type="text" class="form-control" placeholder="Nombre del empleado" value="{{ nombre }}" name="nombre">
         </div>
         <div class="form-group">
             <h4>Apellido(s)</h4>
-            <input type="text" class="form-control" placeholder="Apellido(s) del empleado" value="{{ l_name }}" name="l_name">
+            <input type="text" class="form-control" placeholder="Apellido(s) del empleado" value="{{ apellidos }}" name="apellidos">
         </div>
         <div class="form-group">
             <h4>Cargo</h4>
             <select class="form-select" name="cargo" value="{{ cargo }}">
+                <option value="" selected disabled hidden>Selecciona un cargo</option>
+                <option value="Administrador">Administrador</option>
                 <option value="Vendedor">Vendedor</option>
                 <option value="Almacenista">Almacenista</option>
                 <option value="Repartidor">Repartidor</option>
@@ -25,11 +35,11 @@
         </div>
         <div class="form-group">
             <h4>Dirección</h4>
-            <input type="text" class="form-control" placeholder="Dirección del empleado" value="{{ address }}" name="address">
+            <input type="text" class="form-control" placeholder="Dirección del empleado" value="{{ direccion }}" name="direccion">
         </div>
         <div class="form-group">
             <h4>Número de teléfono</h4>
-            <input type="number" class="form-control" placeholder="Número teléfono del empleado" value="{{ tel }}" name="tel">
+            <input type="number" class="form-control" placeholder="Número teléfono del empleado" value="{{ telefono }}" name="telefono">
         </div>
         <div class="form-group">
             <h4>Sueldo</h4>
