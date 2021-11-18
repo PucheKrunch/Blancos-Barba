@@ -3,6 +3,26 @@
 {% block content %}
 
 <div class="container">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                {{message}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    <h2>Agregar nuevo IVA</h2>
+    <h4>IVA actual: {{actual.porcentaje}}%</h4>
+    <hr>
+    <form method="POST" action="{% url 'iva' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <h4>Porcentaje</h4>
+            <input type="number" class="form-control" placeholder="Porcentaje de IVA" value="{{ porcentaje }}" name="porcentaje">
+        </div>
+        <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Agregar</button>
+    </form>
+    <hr>
     <h2>IVAs registrados</h2>
     <hr>
     <table class="table">
@@ -15,26 +35,16 @@
             </tr>
         </thead>
         <tbody>
+            {% for iva in ivas %}
                 <tr>
-                    <th scope="col">1</th>
-                    <td>16%</td>
-                    <td>25/09/2021</td>
-                    <td>-</td>
+                    <th scope="col">{{ iva.id }}</td>
+                    <td>{{ iva.porcentaje }}</td>
+                    <td>{{ iva.fecha_aplicacion }}</td>
+                    <td>{{ iva.fecha_termino }}</td>
                 </tr>
+            {% endfor %}
         </tbody>
     </table>
-    <hr>
-    <h2>Agregar nuevo IVA</h2>
-    <h4>IVA actual: 16%</h4>
-    <hr>
-    <form method="POST" action="" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="form-group">
-            <h4>Porcentaje</h4>
-            <input type="number" class="form-control" placeholder="Porcentaje de IVA" value="{{ percent }}" name="percent">
-        </div>
-        <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Agregar</button>
-    </form>
 </div>
 
 {% endblock %}

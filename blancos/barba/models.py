@@ -2,29 +2,29 @@ from django.db import models
 
 # Create your models here.
 class Empleado(models.Model):
-    nombre = models.CharField(max_length=50)
-    apellidos = models.CharField(max_length=50)
+    nombre = models.CharField(max_length=50,null=True)
+    apellidos = models.CharField(max_length=50,null=True)
     sueldo = models.FloatField(null=True)
-    cargo = models.CharField(max_length=50)
-    direccion = models.CharField(max_length=50)
+    cargo = models.CharField(max_length=50,null=True)
+    direccion = models.CharField(max_length=50,null=True)
     status = models.CharField(max_length=50,null=True,blank=True)
-    password = models.CharField(max_length=50)
-    telefono = models.CharField(max_length=50)
+    password = models.CharField(max_length=50,null=True)
+    telefono = models.CharField(max_length=50,null=True)
 
     def __str__(self):
         return self.nombre + ' ' + self.apellidos
 
 class Cliente(models.Model):
-    nombre = models.CharField(max_length=50,null=True,blank=True)
-    apellidos = models.CharField(max_length=50,null=True,blank=True)
-    correo = models.CharField(max_length=50,null=True,blank=True)
-    telefono = models.CharField(max_length=50,null=True,blank=True)
+    nombre = models.CharField(max_length=50,null=True)
+    apellidos = models.CharField(max_length=50,null=True)
+    correo = models.CharField(max_length=50,null=True)
+    telefono = models.CharField(max_length=50,null=True)
 
     def __str__(self):
         return self.nombre + ' ' + self.apellidos
 
 class Iva(models.Model):
-    porcentaje = models.FloatField(null=True,blank=True)
+    porcentaje = models.FloatField(null=True)
     fecha_aplicacion = models.DateField(null=True,blank=True)
     fecha_termino = models.DateField(null=True,blank=True)
 

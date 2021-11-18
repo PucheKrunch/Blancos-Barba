@@ -8,9 +8,15 @@
     <form class="form-inline" method="POST" action="">
         {% csrf_token %}
         <br>
-        <input class="form-control mr-sm-2" type="search" placeholder="Introduce el nombre del cliente a buscar" aria-label="Search" name="searched" value="{{ item_searched }}">
+        <input class="form-control mr-sm-2" type="search" placeholder="Introduce el nombre del cliente a buscar" aria-label="Search" name="searched" value="{{ searched }}">
     </form>
     <hr>
+    {% if flag == 2 %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            No se encontró ningún cliente con esos apellidos.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
     <table class="table">
         <thead>
             <tr>
@@ -22,14 +28,16 @@
             </tr>
         </thead>
         <tbody>
+            {% for cliente in clientes %}
                 <tr>
-                    <th scope="col">1</th>
-                    <td>Jaime</td>
-                    <td>Morales</td>
-                    <td>33 0000 0000</td>
-                    <td>example@example.com</td>
-                    <td><a style="padding: 5px; background-color: #0d6efd; border-radius: 5px; color: white; text-decoration: none;" href="/mclient/1">Modificar</a></td>
+                    <th scope="col">{{cliente.id}}</th>
+                    <td>{{cliente.nombre}}</td>
+                    <td>{{cliente.apellidos}}</td>
+                    <td>{{cliente.telefono}}</td>
+                    <td>{{cliente.correo}}</td>
+                    <td><a style="padding: 5px; background-color: #0d6efd; border-radius: 5px; color: white; text-decoration: none;" href="/mclient/{{cliente.id}}">Modificar</a></td>
                 </tr>
+            {% endfor %}
         </tbody>
     </table>
 </div>

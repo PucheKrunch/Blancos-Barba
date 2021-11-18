@@ -10,3 +10,13 @@ class ModifyEmpleadoForm(ModelForm):
     class Meta:
         model = Empleado
         fields = ['telefono', 'direccion', 'sueldo', 'cargo', 'status']
+
+class AddClienteForm(ModelForm):
+    class Meta:
+        model = Cliente
+        fields = ['nombre', 'apellidos', 'telefono', 'correo']
+
+class ModifyClienteForm(ModelForm):
+    class Meta:
+        model = Cliente
+        fields = ['telefono', 'correo']

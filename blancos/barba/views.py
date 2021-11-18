@@ -2,6 +2,7 @@ from django.shortcuts import render,redirect
 from django.contrib import messages
 from .forms import *
 from .models import *
+from datetime import date
 
 # Create your views here.
 def home(request):
@@ -119,15 +120,57 @@ def memp(request,pk):
 
 #Formulario para agregar clientes
 def addclient(request):
+    if request.method == 'POST':
+        form = AddClienteForm(request.POST)
+        nombre = request.POST['nombre']
+        apellidos = request.POST['apellidos']
+        correo = request.POST['correo']
+        telefono = request.POST['telefono']
+        if form.is_valid():
+            form.save()
+            return redirect('clients')
+        else:
+            messages.error(request, 'Completa el formulario por favor')
+            return redirect('addclient')
     return render(request, 'addclient.html')
 
 #Lista de clientes
 def clients(request):
-    return render(request, 'clients.html')
+    if request.method == 'POST':
+        clientes = Cliente.objects.filter(apellidos__contains=request.POST['searched'])
+        flag = 1 if len(clientes) > 0 else 2
+    else:
+        clientes = Cliente.objects.all()
+        flag = 0
+    context = {
+        'clientes': clientes,
+        'flag': flag,
+    }
+    return render(request, 'clients.html', context)
 
 #Modificar cliente
 def mclient(request,pk):
-    return render(request, 'mclient.html')
+    if request.method == 'POST':
+        form = ModifyClienteForm(request.POST)
+        if form.is_valid():
+            cliente = Cliente.objects.get(pk=pk)
+            cliente.correo = request.POST['correo']
+            cliente.telefono = request.POST['telefono']
+            cliente.save()
+            return redirect('clients')
+        else:
+            cliente = Cliente.objects.get(pk=pk)
+            context = {
+                'cliente': cliente,
+            }
+            messages.error(request, 'No dejes campos en blanco por favor')
+            return render(request,'mclient.html',context)
+    else:
+        cliente = Cliente.objects.get(pk=pk)
+        context = {
+            'cliente': cliente,
+        }
+        return render(request, 'mclient.html', context)
 
 #Formulario para agregar productos
 def addproduct(request):
@@ -143,7 +186,23 @@ def mproduct(request,pk):
 
 #Modificar iva
 def iva(request):
-    return render(request, 'iva.html')
+    ivas = Iva.objects.all()
+    actual = list(Iva.objects.all())[-1]
+    context = {
+        'ivas': ivas,
+        'actual': actual,
+    }
+    if request.method == 'POST':
+        try:
+            porcentaje = request.POST['porcentaje']
+            Iva.objects.create(porcentaje=porcentaje, fecha_aplicacion=date.today())
+        except:
+            messages.error(request, 'Ingrese un porcentaje por favor')
+            return render(request, 'iva.html', context)
+        actual.fecha_termino = date.today()
+        actual.save()
+        return redirect('iva')
+    return render(request, 'iva.html',context)
 
 #Formulario para agregar proveedores
 def addprov(request):
