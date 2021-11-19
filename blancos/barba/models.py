@@ -32,11 +32,11 @@ class Iva(models.Model):
         return str(self.porcentaje)
 
 class Producto(models.Model):
-    descripcion = models.CharField(max_length=50,null=True,blank=True)
-    precio = models.FloatField(null=True,blank=True)
-    color = models.CharField(max_length=50,null=True,blank=True)
-    talla = models.CharField(max_length=50,null=True,blank=True)
-    existencia = models.IntegerField(null=True,blank=True)
+    descripcion = models.CharField(max_length=50,null=True)
+    precio = models.FloatField(null=True)
+    color = models.CharField(max_length=50,null=True)
+    talla = models.CharField(max_length=50,null=True)
+    existencia = models.IntegerField(null=True)
 
     def __str__(self):
         return self.descripcion

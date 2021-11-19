@@ -3,13 +3,21 @@
 {% block content %}
 
 <div class="container">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                {{message}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
     <h2>Nuevo Producto</h2>
     <hr>
     <form method="POST" action="" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="form-group">
             <h4>Descripción</h4>
-            <input type="text" class="form-control" placeholder="Descripción del producto" value="{{ desc }}" name="desc">
+            <input type="text" class="form-control" placeholder="Descripción del producto" value="{{ descripcion }}" name="descripcion">
         </div>
         <div class="form-group">
             <h4>Color</h4>
@@ -17,7 +25,8 @@
         </div>
         <div class="form-group">
             <h4>Tamaño</h4>
-            <select class="form-select" name="size" value="{{ size }}">
+            <select class="form-select" name="talla" value="{{ talla }}">
+                <option value="" selected disabled hidden>Selecciona una talla</option>
                 <option value="Individual">Individual</option>
                 <option value="Matrimonial">Matrimonial</option>
                 <option value="Queen size">Queen size</option>
@@ -26,7 +35,7 @@
         </div>
         <div class="form-group">
             <h4>Precio neto</h4>
-            <input type="number" class="form-control" placeholder="Precio neto del producto" value="{{ price }}" name="price">
+            <input type="number" class="form-control" placeholder="Precio neto del producto" value="{{ precio }}" name="precio">
         </div>
         <div class="form-group">
             <h4>Existencia</h4>

@@ -21,6 +21,16 @@ def addemp(request):
         direccion = request.POST['direccion']
         telefono = request.POST['telefono']
         sueldo = request.POST['sueldo']
+        if int(sueldo) <= 0:
+            context = {
+                'nombre': nombre,
+                'apellidos': apellidos,
+                'direccion': direccion,
+                'telefono': telefono,
+            }
+            messages.error(request, 'El sueldo no puede ser negativo o 0')
+            return render(request, 'addemp.html', context)
+            messages.error(request, 'El sueldo no puede ser negativo o 0')
         password = request.POST['password']
         try:
             cargo = request.POST['cargo']
@@ -88,6 +98,9 @@ def memp(request,pk):
         direccion = request.POST['direccion']
         telefono = request.POST['telefono']
         sueldo = request.POST['sueldo']
+        if int(sueldo) <= 0:
+            messages.error(request, 'El sueldo no puede ser negativo o 0')
+            return redirect('memp',pk)
         context = {
             'cargo': cargo,
             'status': status,
@@ -130,8 +143,14 @@ def addclient(request):
             form.save()
             return redirect('clients')
         else:
+            context = {
+                'nombre': nombre,
+                'apellidos': apellidos,
+                'correo': correo,
+                'telefono': telefono,
+            }
             messages.error(request, 'Completa el formulario por favor')
-            return redirect('addclient')
+            return render(request, 'addclient.html', context)
     return render(request, 'addclient.html')
 
 #Lista de clientes
@@ -174,15 +193,70 @@ def mclient(request,pk):
 
 #Formulario para agregar productos
 def addproduct(request):
-    return render(request, 'addproduct.html')
+    if request.method == 'POST':
+        form = AddProductoForm(request.POST)
+        descripcion = request.POST['descripcion']
+        color = request.POST['color']
+        precio = request.POST['precio']
+        existencia = request.POST['existencia']
+        context = {
+                'descripcion': descripcion,
+                'color': color,
+                'precio': precio,
+                'existencia': existencia,
+            }
+        if int(precio) <= 0 or int(existencia) <= 0:
+            messages.error(request, 'El precio y la existencia no pueden ser negativos o 0')
+            return render(request, 'addproduct.html',context)
+        try:
+            talla = request.POST['talla']
+        except:
+            messages.error(request, 'Selecciona una talla por favor')
+            return render(request, 'addproduct.html', context)
+        if form.is_valid():
+            form.save()
+            return redirect('products')
+        else:
+            messages.error(request, 'Completa el formulario por favor')
+            return render(request, 'addproduct.html', context)
+    else:
+        return render(request, 'addproduct.html')
 
 #Lista de productos
 def products(request):
-    return render(request, 'products.html')
+    if request.method == 'POST':
+        productos = Producto.objects.filter(descripcion__contains=request.POST['searched'])
+        flag = 1 if len(productos) > 0 else 2
+    else:
+        productos = Producto.objects.all()
+        flag = 0
+    context = {
+        'productos': productos,
+        'flag': flag,
+    }
+    return render(request, 'products.html', context)
 
 #Modificar existencia de productos
 def mproduct(request,pk):
-    return render(request, 'mproduct.html')
+    producto = Producto.objects.get(pk=pk)
+    context = {
+        'producto': producto,
+    }
+    if request.method == 'POST':
+        form = ModifyProductoForm(request.POST)
+        existencia = request.POST['existencia']
+        if int(existencia) <= 0:
+            messages.error(request, 'La existencia no puede ser negativa o 0')
+            return redirect('mproduct',pk)
+        if form.is_valid():
+            producto = Producto.objects.get(pk=pk)
+            producto.existencia = existencia
+            producto.save()
+            return redirect('products')
+        else:
+            messages.error(request, 'Completa el formulario por favor')
+            return redirect('mproduct',pk)
+    return render(request, 'mproduct.html', context)
 
 #Modificar iva
 def iva(request):

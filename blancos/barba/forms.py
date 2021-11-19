@@ -20,3 +20,13 @@ class ModifyClienteForm(ModelForm):
     class Meta:
         model = Cliente
         fields = ['telefono', 'correo']
+
+class AddProductoForm(ModelForm):
+    class Meta:
+        model = Producto
+        fields = ['precio', 'descripcion', 'talla', 'color', 'existencia']
+
+class ModifyProductoForm(ModelForm):
+    class Meta:
+        model = Producto
+        fields = ['existencia']
