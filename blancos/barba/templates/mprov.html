@@ -5,17 +5,25 @@
 <div class="container">
     <h2>Modificar proveedor</h2>
     <hr>
-    <h4>Nombre: Sedas S.A. de C.V.</h4>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                {{message}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    <h4>Nombre: {{proveedor.nombre}}</h4>
     <hr>
     <form method="POST" action="" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="form-group">
             <h4>Teléfono</h4>
-            <input type="number" class="form-control" placeholder="Número teléfonico del proveedor" value="{{ tel }}" name="tel">
+            <input type="number" class="form-control" placeholder="Número teléfonico del proveedor" value="{{ proveedor.telefono }}" name="telefono">
         </div>
         <div class="form-group">
             <h4>Correo electrónico</h4>
-            <input type="email" class="form-control" placeholder="Correo electrónico del proveedor" value="{{ email }}" name="email">
+            <input type="email" class="form-control" placeholder="Correo electrónico del proveedor" value="{{ proveedor.correo }}" name="correo">
         </div>
         <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Modificar</button>
     </form>

@@ -30,3 +30,13 @@ class ModifyProductoForm(ModelForm):
     class Meta:
         model = Producto
         fields = ['existencia']
+
+class AddProveedorForm(ModelForm):
+    class Meta:
+        model = Proveedor
+        fields = ['nombre', 'telefono', 'correo']
+
+class ModifyProveedorForm(ModelForm):
+    class Meta:
+        model = Proveedor
+        fields = ['telefono', 'correo']

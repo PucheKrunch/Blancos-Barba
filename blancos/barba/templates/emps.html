@@ -7,7 +7,6 @@
     <hr>
     <form class="form-inline" method="POST" action="{% url 'emps' %}">
         {% csrf_token %}
-        <br>
         <input class="form-control mr-sm-2" type="search" placeholder="Introduce los apellidos del empleado a buscar" aria-label="Search" name="searched" value="{{ searched }}">
     </form>
     <hr>

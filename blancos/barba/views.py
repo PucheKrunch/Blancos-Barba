@@ -280,15 +280,57 @@ def iva(request):
 
 #Formulario para agregar proveedores
 def addprov(request):
+    if request.method == 'POST':
+        form = AddProveedorForm(request.POST)
+        correo = request.POST['correo']
+        nombre = request.POST['nombre']
+        telefono = request.POST['telefono']
+        if form.is_valid():
+            form.save()
+            return redirect('provs')
+        else:
+            context = {
+                'nombre': nombre,
+                'correo': correo,
+                'telefono': telefono,
+            }
+            messages.error(request, 'Completa el formulario por favor')
+            return render(request, 'addprov.html', context)
     return render(request, 'addprov.html')
 
 #Lista de proveedores
 def provs(request):
-    return render(request, 'provs.html')
+    if request.method == 'POST':
+        proveedores = Proveedor.objects.filter(nombre__contains=request.POST['searched'])
+        flag = 1 if len(proveedores) > 0 else 2
+    else:
+        proveedores = Proveedor.objects.all()
+        flag = 0
+    context = {
+        'proveedores': proveedores,
+        'flag': flag,
+    }
+    return render(request, 'provs.html', context)
 
 #Modificar proveedor
 def mprov(request,pk):
-    return render(request, 'mprov.html')
+    if request.method == 'POST':
+        form = ModifyProveedorForm(request.POST)
+        if form.is_valid():
+            proveedor = Proveedor.objects.get(pk=pk)
+            proveedor.correo = request.POST['correo']
+            proveedor.telefono = request.POST['telefono']
+            proveedor.save()
+            return redirect('provs')
+        else:
+            messages.error(request, 'Completa el formulario por favor')
+            return redirect('mprov',pk)
+    else:
+        proveedor = Proveedor.objects.get(pk=pk)
+        context = {
+            'proveedor': proveedor,
+        }
+        return render(request, 'mprov.html', context)
 
 #Formulario para agregar bajas
 def addbaja(request):
