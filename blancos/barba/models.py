@@ -52,10 +52,10 @@ class Proveedor(models.Model):
 class Venta(models.Model):
     fechaVenta = models.DateField(null=True,blank=True)
     fechaEntrega = models.DateField(null=True,blank=True)
-    cliente = models.ForeignKey(Cliente,on_delete=models.SET_NULL,null=True,blank=True)
-    vendedor = models.ForeignKey(Empleado,on_delete=models.SET_NULL,null=True,blank=True)
-    repartidor = models.ForeignKey(Empleado,on_delete=models.SET_NULL,null=True,blank=True,related_name='repartidor')
-    direccion = models.CharField(max_length=50,null=True,blank=True)
+    cliente = models.ForeignKey(Cliente,on_delete=models.SET_NULL,null=True)
+    vendedor = models.ForeignKey(Empleado,on_delete=models.SET_NULL,null=True)
+    repartidor = models.ForeignKey(Empleado,on_delete=models.SET_NULL,null=True,related_name='repartidor')
+    direccion = models.CharField(max_length=50,null=True)
     status = models.CharField(max_length=50,null=True,blank=True)
 
     def __str__(self):

@@ -36,7 +36,7 @@ urlpatterns = [
     path('bajas/',views.bajas, name='bajas'),
     path('addventa/',views.addventa, name='addventa'),
     path('ventas/',views.ventas, name='ventas'),
-    path('statusventa/',views.statusventa, name='statusventa'),
+    path('statusventa/<str:pk>',views.statusventa, name='statusventa'),
     path('addcompra/',views.addcompra, name='addcompra'),
     path('compras/',views.compras, name='compras'),
 ]

@@ -3,30 +3,60 @@
 {% block content %}
 
 <div class="container">
-    <h2>Ventas pendientes</h2>
+    <h2>Venta ID: <b>{{venta.id}}</b></h2>
     <hr>
     <table class="table table-striped">
         <thead>
             <tr>
-                <th scope="col">ID Venta</th>
-                <th scope="col">Fecha</th>
-                <th scope="col">Vendedor</th>
+                <th scope="col">Fecha de venta</th>
+                <th scope="col">Fecha de entrega</th>
                 <th scope="col">Cliente</th>
+                <th scope="col">Vendedor</th>
                 <th scope="col">Repartidor</th>
                 <th scope="col">Status</th>
             </tr>
         </thead>
         <tbody>
                 <tr>
-                    <th scope="col">1</th>
-                    <td>02/11/2021</td>
-                    <td>Santiago Benavides</td>
-                    <td>Carlos Madrigal</td>
-                    <td>Carlos Barba</td>
-                    <td>Preparando entrega</td>
+                    <td>{{venta.fechaVenta}}</td>
+                    <td>{{venta.fechaEntrega}}</td>
+                    <td>{{venta.cliente}}</td>
+                    <td>{{venta.vendedor}}</td>
+                    <td>{{venta.repartidor}}</td>
+                    <td>{{venta.status}}</td>
                 </tr>
         </tbody>
     </table>
+    <h4><b>Productos</b></h4>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Descripción</th>
+                <th scope="col">Color</th>
+                <th scope="col">Tamaño</th>
+                <th scope="col">Precio unitario</th>
+                <th scope="col">Cantidad</th>
+                <th scope="col">Precio total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in productos %}
+                <tr>
+                    <th scope="col">{{p.producto.id}}</th>
+                    <td>{{p.producto.descripcion}}</td>
+                    <td>{{p.producto.color}}</td>
+                    <td>{{p.producto.talla}}</td>
+                    <td>{{p.producto.precio}}</td>
+                    <td>{{p.cantidad}}</td>
+                    <td>{{p.pc}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p><b>Sub total:</b> ${{subtotal}}</p>
+    <p><b>IVA:</b> {{iva}}%</p>
+    <p><b>Total:</b> ${{total}}</p>
     <form action="" method="POST">
         {% csrf_token %}
         <div class="form-group">

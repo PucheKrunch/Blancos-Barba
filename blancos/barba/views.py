@@ -346,11 +346,42 @@ def addventa(request):
 
 #Lista de ventas
 def ventas(request):
-    return render(request, 'ventas.html')
+    if request.method == 'POST':
+        ventas = Venta.objects.filter(cliente__apellidos__contains=request.POST['searched'])
+        flag = 1 if len(ventas) > 0 else 2
+    else:
+        ventas = Venta.objects.all()
+        flag = 0
+    context = {
+        'ventas': ventas,
+        'flag': flag,
+    }
+    return render(request, 'ventas.html', context)
 
 #Modificar status de venta
-def statusventa(request):
-    return render(request, 'statusventa.html')
+def statusventa(request,pk):
+    venta = Venta.objects.get(pk=pk)
+    detalles = DetalleVenta.objects.filter(venta=venta)
+    subtotal = 0
+    productos = []
+    for detalle in detalles:
+        p = Producto.objects.get(pk=detalle.producto.pk)
+        subtotal += p.precio * detalle.cantidad
+        productos.append({
+            'producto': p,
+            'cantidad': detalle.cantidad,
+            'pc': p.precio * detalle.cantidad,
+        })
+    iva = list(Iva.objects.all())[-1]
+    total = subtotal * (1 + iva.porcentaje/100)
+    context = {
+        'venta': venta,
+        'subtotal': subtotal,
+        'iva': iva,
+        'total': total,
+        'productos': productos,
+    }
+    return render(request, 'statusventa.html', context)
 
 #Formulario para agregar compras
 def addcompra(request):
