@@ -342,7 +342,73 @@ def bajas(request):
 
 #Formulario para agregar ventas
 def addventa(request):
-    return render(request, 'addventa.html')
+    detalles = DetalleVenta.objects.filter(venta=list(Venta.objects.all())[-1])
+    productos = []
+    subtotal = 0
+    for detalle in detalles:
+        p = Producto.objects.get(pk=detalle.producto.pk)
+        subtotal += p.precio * detalle.cantidad
+        productos.append({
+            'producto': p,
+            'cantidad': detalle.cantidad,
+            'pc': p.precio * detalle.cantidad,
+        })
+    context = {
+        'productos': productos,
+        'subtotal': subtotal,
+        'flag': len(productos),
+    }
+    return render(request, 'addventa.html', context)
+
+def addpv(request):
+    venta = list(Venta.objects.all())[-1]
+    if request.method == 'POST':
+        if request.POST['producto'] != '' and request.POST['cantidad'] != '':
+            try:
+                producto = Producto.objects.get(pk=request.POST['producto'])
+            except:
+                messages.error(request, 'El producto no existe')
+                return redirect('addventa')
+            else:
+                if int(request.POST['cantidad']) <= 0:
+                    messages.error(request, 'La cantidad no puede ser negativa o 0')
+                    return redirect('addventa')
+                elif producto.existencia < int(request.POST['cantidad']):
+                    messages.error(request, 'No hay suficiente existencia')
+                    return redirect('addventa')
+                else:
+                    if len(DetalleVenta.objects.filter(venta=venta).filter(producto=request.POST['producto'])) > 0:
+                        detalle = DetalleVenta.objects.get(venta=venta, producto=request.POST['producto'])
+                        detalle.cantidad += int(request.POST['cantidad'])
+                        detalle.save()
+                        producto.existencia -= int(request.POST['cantidad'])
+                        producto.save()
+                    else:
+                        producto.existencia -= int(request.POST['cantidad'])
+                        producto.save()
+                        DetalleVenta.objects.create(venta=venta, producto=producto, cantidad=request.POST['cantidad'])
+                    return redirect('addventa')
+            return redirect('addventa')
+        else:
+            messages.error(request, 'Completa el formulario de productos por favor')
+            return redirect('addventa')
+
+def delpv(request,pk):
+    producto = Producto.objects.get(pk=pk)
+    detalle = DetalleVenta.objects.get(producto=producto, venta=list(Venta.objects.all())[-1])
+    producto.existencia += detalle.cantidad
+    producto.save()
+    detalle.delete()
+    return redirect('addventa')
+
+def delallpv(request):
+    detalles = DetalleVenta.objects.filter(venta=list(Venta.objects.all())[-1])
+    for detalle in detalles:
+        producto = Producto.objects.get(pk=detalle.producto.pk)
+        producto.existencia += detalle.cantidad
+        producto.save()
+    detalles.delete()
+    return redirect('addventa')
 
 #Lista de ventas
 def ventas(request):
@@ -360,6 +426,16 @@ def ventas(request):
 
 #Modificar status de venta
 def statusventa(request,pk):
+    if request.method == 'POST':
+        form = ModifyVentaForm(request.POST)
+        if form.is_valid():
+            venta = Venta.objects.get(pk=pk)
+            venta.status = request.POST['status']
+            venta.save()
+            return redirect('statusventa',pk)
+        else:
+            messages.error(request, 'Selecciona un status a cambiar')
+            return redirect('statusventa',pk)
     venta = Venta.objects.get(pk=pk)
     detalles = DetalleVenta.objects.filter(venta=venta)
     subtotal = 0

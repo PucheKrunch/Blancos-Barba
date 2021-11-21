@@ -57,18 +57,30 @@
     <p><b>Sub total:</b> ${{subtotal}}</p>
     <p><b>IVA:</b> {{iva}}%</p>
     <p><b>Total:</b> ${{total}}</p>
-    <form action="" method="POST">
-        {% csrf_token %}
-        <div class="form-group">
-            <p>Cambiar estado de la venta</p>
-            <select class="form-select" name="status" value="{{ status }}">
-                <option value="Preparando entrega">Preparando entrega</option>
-                <option value="Entregado">Entregado</option>
-            </select>
-            <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Cambiar</button>
-        </div>
-    </form>
     <hr>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                {{message}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    {% if venta.status == 'Preparando entrega' %}
+        <form action="" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <p>Cambiar estado de la venta</p>
+                <select class="form-select" name="status" value="{{ status }}">
+                    <option value="" selected disabled hidden>Selecciona el estado</option>
+                    <option value="Entregado">Entregado</option>
+                    <option value="Cancelada">Cancelada</option>
+                </select>
+                <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Cambiar</button>
+            </div>
+        </form>
+        <hr>
+    {% endif %}
 </div>
 
 {% endblock %}

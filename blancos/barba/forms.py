@@ -40,3 +40,8 @@ class ModifyProveedorForm(ModelForm):
     class Meta:
         model = Proveedor
         fields = ['telefono', 'correo']
+
+class ModifyVentaForm(ModelForm):
+    class Meta:
+        model = Venta
+        fields = ['status']

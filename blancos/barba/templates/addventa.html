@@ -5,20 +5,29 @@
 <div class="container">
     <h2>Nueva venta</h2>
     <hr>
-    <form method="POST" action="" enctype="multipart/form-data">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                {{message}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    <form method="POST" action="{% url 'addpv' %}" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="form-group">
             <h4>ID Producto</h4>
-            <input type="number" class="form-control" placeholder="ID del producto a dar de baja" value="{{ product_id }}" name="product_id">
+            <input type="number" class="form-control" placeholder="ID del producto a vender" value="{{ producto }}" name="producto">
         </div>
         <div class="form-group">
             <h4>Cantidad del producto</h4>
-            <input type="number" class="form-control" placeholder="Cantidad del producto a dar de baja" value="{{ product_id }}" name="product_id">
+            <input type="number" class="form-control" placeholder="Cantidad del producto a vender" value="{{ cantidad }}" name="cantidad">
         </div>
         <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Agregar</button>
     </form>
     <hr>
     <form method="POST" action="">
+        {% csrf_token %}
         <div class="form-group">
             <h4>ID Cliente</h4>
             <input type="number" class="form-control" placeholder="ID del cliente" value="{{ client_id }}" name="client_id">
@@ -42,29 +51,38 @@
         <button type="submit" class="btn btn-success" style="margin-top: 10px;">Confirmar venta</button>
     </form>
     <hr>
-    <h2>Productos</h2>
-    <table class="table">
+    <h2>Productos agregados</h2>
+    {% if flag > 0 %}
+        <a href="{% url 'delallpv' %}" class="btn btn-danger">Borrar todos los productos</a>
+    {% endif %}
+    <table class="table table-striped">
         <thead>
             <tr>
                 <th scope="col">ID</th>
                 <th scope="col">Descripción</th>
                 <th scope="col">Color</th>
                 <th scope="col">Tamaño</th>
-                <th scope="col">Precio neto</th>
-                <th scope="col">Existencia</th>
+                <th scope="col">Precio unitario</th>
+                <th scope="col">Cantidad</th>
+                <th scope="col">Precio total</th>
             </tr>
         </thead>
         <tbody>
+            {% for p in productos %}
                 <tr>
-                    <th scope="col">1</th>
-                    <td>Sábanas de seda</td>
-                    <td>Blancas</td>
-                    <td>Matrimonial</td>
-                    <td>$750.00</td>
-                    <td>15</td>
+                    <th scope="col">{{p.producto.id}}</th>
+                    <td>{{p.producto.descripcion}}</td>
+                    <td>{{p.producto.color}}</td>
+                    <td>{{p.producto.talla}}</td>
+                    <td>${{p.producto.precio}}</td>
+                    <td>{{p.cantidad}}</td>
+                    <td>${{p.pc}}</td>
+                    <td><a style="padding: 5px; background-color: #dc3545; border-radius: 5px; color: white; text-decoration: none;" href="/delpv/{{p.producto.id}}">Eliminar</a></td>
                 </tr>
+            {% endfor %}
         </tbody>
     </table>
+    <p><b>Sub total:</b> ${{subtotal}}</p>
 </div>
 
 {% endblock %}

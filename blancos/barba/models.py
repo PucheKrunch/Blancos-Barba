@@ -52,23 +52,16 @@ class Proveedor(models.Model):
 class Venta(models.Model):
     fechaVenta = models.DateField(null=True,blank=True)
     fechaEntrega = models.DateField(null=True,blank=True)
-    cliente = models.ForeignKey(Cliente,on_delete=models.SET_NULL,null=True)
-    vendedor = models.ForeignKey(Empleado,on_delete=models.SET_NULL,null=True)
-    repartidor = models.ForeignKey(Empleado,on_delete=models.SET_NULL,null=True,related_name='repartidor')
-    direccion = models.CharField(max_length=50,null=True)
+    cliente = models.ForeignKey(Cliente,on_delete=models.SET_NULL,null=True,blank=True)
+    vendedor = models.ForeignKey(Empleado,on_delete=models.SET_NULL,null=True,blank=True)
+    repartidor = models.ForeignKey(Empleado,on_delete=models.SET_NULL,null=True,related_name='repartidor',blank=True)
+    direccion = models.CharField(max_length=50,null=True,blank=True)
     status = models.CharField(max_length=50,null=True,blank=True)
-
-    def __str__(self):
-        return str(self.cliente.nombre) + ' ' + str(self.cliente.apellidos) + ' ' + str(self.id)
 
 class DetalleVenta(models.Model):
     venta = models.ForeignKey(Venta,on_delete=models.CASCADE,null=True,blank=True)
     producto = models.ForeignKey(Producto,on_delete=models.CASCADE,null=True,blank=True)
     cantidad = models.IntegerField(null=True,blank=True)
-    precio = models.FloatField(null=True,blank=True)
-
-    def __str__(self):
-        return str(self.venta.cliente.nombre) + ' ' + str(self.venta.cliente.apellidos) + ' ' + str(self.venta.id)
 
 class Compra(models.Model):
     fechaCompra = models.DateField(null=True,blank=True)
