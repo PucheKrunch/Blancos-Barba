@@ -2,7 +2,7 @@ from django.shortcuts import render,redirect
 from django.contrib import messages
 from .forms import *
 from .models import *
-from datetime import date
+from datetime import date, timedelta
 
 # Create your views here.
 def home(request):
@@ -342,6 +342,8 @@ def bajas(request):
 
 #Formulario para agregar ventas
 def addventa(request):
+    repartidores = Empleado.objects.filter(cargo='Repartidor')
+    vendedores = Empleado.objects.filter(cargo='Vendedor')
     detalles = DetalleVenta.objects.filter(venta=list(Venta.objects.all())[-1])
     productos = []
     subtotal = 0
@@ -357,7 +359,33 @@ def addventa(request):
         'productos': productos,
         'subtotal': subtotal,
         'flag': len(productos),
+        'repartidores': repartidores,
+        'vendedores': vendedores,
     }
+    if request.method == 'POST':
+        try:
+            venta = list(Venta.objects.all())[-1]
+            venta.vendedor = Empleado.objects.get(pk=request.POST['vendedor'])
+            venta.repartidor = Empleado.objects.get(pk=request.POST['repartidor'])
+        except:
+            messages.error(request, 'Completa el formulario correctamente por favor')
+            return render(request, 'addventa.html', context)
+        else:
+            if len(Cliente.objects.filter(pk=request.POST['cliente'])) == 0:
+                messages.error(request, 'El cliente no existe')
+                return render(request, 'addventa.html', context)
+            else:
+                venta.fechaVenta = date.today()
+                venta.fechaEntrega = date.today() + timedelta(days=7)
+                venta.cliente = Cliente.objects.get(pk=request.POST['cliente'])
+                if request.POST['direccion'] == '':
+                    messages.error(request, 'Ingrese una dirección por favor')
+                    return render(request, 'addventa.html', context)
+                venta.direccion = request.POST['direccion']
+                venta.status = 'Preparando entrega'
+                venta.save()
+                Venta.objects.create()
+                return redirect('statusventa',venta.pk)
     return render(request, 'addventa.html', context)
 
 def addpv(request):
@@ -416,7 +444,7 @@ def ventas(request):
         ventas = Venta.objects.filter(cliente__apellidos__contains=request.POST['searched'])
         flag = 1 if len(ventas) > 0 else 2
     else:
-        ventas = Venta.objects.all()
+        ventas = Venta.objects.all().exclude(status=None)
         flag = 0
     context = {
         'ventas': ventas,
@@ -432,6 +460,12 @@ def statusventa(request,pk):
             venta = Venta.objects.get(pk=pk)
             venta.status = request.POST['status']
             venta.save()
+            if venta.status == 'Cancelada':
+                detalles = DetalleVenta.objects.filter(venta=venta)
+                for detalle in detalles:
+                    producto = Producto.objects.get(pk=detalle.producto.pk)
+                    producto.existencia += detalle.cantidad
+                    producto.save()
             return redirect('statusventa',pk)
         else:
             messages.error(request, 'Selecciona un status a cambiar')

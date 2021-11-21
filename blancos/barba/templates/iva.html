@@ -40,7 +40,11 @@
                     <th scope="col">{{ iva.id }}</td>
                     <td>{{ iva.porcentaje }}</td>
                     <td>{{ iva.fecha_aplicacion }}</td>
-                    <td>{{ iva.fecha_termino }}</td>
+                    {% if iva.fecha_termino is None %}
+                        <td>Actual</td>
+                    {% else %}
+                        <td>{{ iva.fecha_termino }}</td>
+                    {% endif %}
                 </tr>
             {% endfor %}
         </tbody>
