@@ -5,19 +5,27 @@
 <div class="container">
     <h2>Nueva Compra</h2>
     <hr>
-    <form method="POST" action="" enctype="multipart/form-data">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                {{message}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    <form method="POST" action="{% url 'addpc' %}" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="form-group">
             <h4>ID Producto</h4>
-            <input type="number" class="form-control" placeholder="ID del producto a dar de baja" value="{{ product_id }}" name="product_id">
+            <input type="number" class="form-control" placeholder="ID del producto a comprar" value="{{ producto }}" name="producto">
         </div>
         <div class="form-group">
             <h4>Cantidad del producto</h4>
-            <input type="number" class="form-control" placeholder="Cantidad del producto a dar de baja" value="{{ product_id }}" name="product_id">
+            <input type="number" class="form-control" placeholder="Cantidad del producto a comprar" value="{{ cantidad }}" name="cantidad">
         </div>
         <div class="form-group">
             <h4>Precio</h4>
-            <input type="number" class="form-control" placeholder="Precio unitario del producto" value="{{ valorCompra }}" name="valorCompra">
+            <input type="number" class="form-control" placeholder="Precio unitario del producto" value="{{ precio }}" name="precio">
         </div>
         <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Agregar</button>
     </form>
@@ -27,50 +35,56 @@
         <div class="form-group">
             <h4>Proveedor</h4>
             <select class="form-select" name="proveedor" value="{{ proveedor }}">
-                <option value="1">Sedas S.A. de C.V.</option>
+                <option value="" selected disabled hidden>Selecciona un proveedor</option>
+                {% for proveedor in proveedores %}
+                    <option value="{{ proveedor.id }}">{{ proveedor.nombre }}</option>
+                {% endfor %}
             </select>
         </div>
         <div class="form-group">
             <h4>Empleado que hizo la compra</h4>
             <select class="form-select" name="empleado" value="{{ empleado }}">
-                <option value="1">Santiago Benavides</option>
-                <option value="2">Carlos Barba</option>
+                <option value="" selected disabled hidden>Selecciona un empleado</option>
+                {% for empleado in empleados %}
+                    <option value="{{ empleado.id }}">{{ empleado.nombre }} {{ empleado.apellidos }}</option>
+                {% endfor %}
             </select>
         </div>
         <button type="submit" class="btn btn-success" style="margin-top: 10px;">Confirmar compra</button>
     </form>
     <hr>
-    <h2>Productos</h2>
-    <table class="table">
+    <h2>Productos agregados</h2>
+    {% if flag > 0 %}
+        <a href="{% url 'delallpc' %}" class="btn btn-danger">Borrar compra</a>
+    {% endif %}
+    <table class="table table-striped">
         <thead>
             <tr>
                 <th scope="col">ID</th>
                 <th scope="col">Descripción</th>
                 <th scope="col">Color</th>
                 <th scope="col">Tamaño</th>
-                <th scope="col">Precio neto</th>
-                <th scope="col">Existencia</th>
+                <th scope="col">Precio unitario (Compra)</th>
+                <th scope="col">Cantidad</th>
+                <th scope="col">Precio total</th>
             </tr>
         </thead>
         <tbody>
+            {% for p in productos %}
                 <tr>
-                    <th scope="col">1</th>
-                    <td>Sábanas de seda</td>
-                    <td>Blancas</td>
-                    <td>Matrimonial</td>
-                    <td>$750.00</td>
-                    <td>15</td>
+                    <th scope="col">{{p.producto.id}}</th>
+                    <td>{{p.producto.descripcion}}</td>
+                    <td>{{p.producto.color}}</td>
+                    <td>{{p.producto.talla}}</td>
+                    <td>${{p.precio}}</td>
+                    <td>{{p.cantidad}}</td>
+                    <td>${{p.pc}}</td>
+                    <td><a style="padding: 5px; background-color: #dc3545; border-radius: 5px; color: white; text-decoration: none;" href="/delpc/{{p.producto.id}}">Eliminar</a></td>
                 </tr>
-                <tr>
-                    <th scope="col">2</th>
-                    <td>Cubrecama</td>
-                    <td>Blanco</td>
-                    <td>Matrimonial</td>
-                    <td>$500.00</td>
-                    <td>5</td>
-                </tr>
+            {% endfor %}
         </tbody>
     </table>
+    <p><b>Sub total:</b> ${{subtotal}}</p>
 </div>
 
 {% endblock %}

@@ -334,11 +334,109 @@ def mprov(request,pk):
 
 #Formulario para agregar bajas
 def addbaja(request):
-    return render(request, 'addbaja.html')
+    empleados = Empleado.objects.filter(cargo__in=['Administrador','Almacenista'])
+    detalles = DetalleBaja.objects.filter(baja=list(Baja.objects.all())[-1])
+    context = {
+        'empleados': empleados,
+        'detalles': detalles,
+        'flag': len(detalles),
+    }
+    if request.method == 'POST':
+        baja = list(Baja.objects.all())[-1]
+        try:
+            baja.empleado = Empleado.objects.get(pk=request.POST['empleado'])
+        except:
+            messages.error(request, 'Completa el formulario correctamente por favor')
+            return render(request, 'addbaja.html', context)
+        compra = Compra.objects.filter(pk=int(request.POST['compra']))
+        if len(compra) == 0:
+            messages.error(request, 'No existe esa compra')
+            return render(request, 'addbaja.html', context)
+        baja.compra = compra[0]
+        baja.fechaBaja = date.today()
+        baja.save()
+        Baja.objects.create()
+        return redirect('bajainfo',baja.pk)
+    return render(request, 'addbaja.html', context)
 
 #Lista de bajas
 def bajas(request):
-    return render(request, 'bajas.html')
+    if request.method == 'POST':
+        if request.POST['searched'] == '':
+            bajas = Baja.objects.all().exclude(fechaBaja=None)
+            flag = 0
+        else:
+            bajas = Baja.objects.filter(pk=request.POST['searched']).exclude(fechaBaja=None)
+            flag = 1 if len(bajas) > 0 else 2
+    else:
+        bajas = Baja.objects.all().exclude(fechaBaja=None)
+        flag = 0
+    context = {
+        'bajas': bajas,
+        'flag': flag,
+    }
+    return render(request, 'bajas.html', context)
+
+#Agregar producto a baja
+def addpb(request):
+    baja = list(Baja.objects.all())[-1]
+    if request.method == 'POST':
+        if request.POST['producto'] != '' and request.POST['cantidad'] != '' and request.POST['motivo'] != '':
+            try:
+                producto = Producto.objects.get(pk=request.POST['producto'])
+            except:
+                messages.error(request, 'El producto no existe')
+                return redirect('addbaja')
+            else:
+                if int(request.POST['cantidad']) <= 0:
+                    messages.error(request, 'La cantidad no puede ser negativa o 0')
+                    return redirect('addbaja')
+                else:
+                    if len(DetalleBaja.objects.filter(producto=producto, baja=baja)) > 0:
+                        detalle = DetalleBaja.objects.get(producto=producto, baja=baja)
+                        detalle.cantidad += int(request.POST['cantidad'])
+                        detalle.motivo = request.POST['motivo']
+                        detalle.save()
+                        producto.existencia -= int(request.POST['cantidad'])
+                        producto.save()
+                    else:
+                        DetalleBaja.objects.create(producto=producto, cantidad=int(request.POST['cantidad']), baja=baja, motivo=request.POST['motivo'])
+                        producto.existencia -= int(request.POST['cantidad'])
+                        producto.save()
+                    return redirect('addbaja')
+            return redirect('addbaja')
+        else:
+            messages.error(request, 'Completa el formulario de productos por favor')
+            return redirect('addbaja')
+
+#Información de la baja
+def bajainfo(request,pk):
+    baja = Baja.objects.get(pk=pk)
+    detalles = DetalleBaja.objects.filter(baja=baja)
+    context = {
+        'baja': baja,
+        'detalles': detalles,
+    }
+    return render(request, 'bajainfo.html', context)
+
+#Eliminar producto de baja
+def delpb(request,pk):
+    producto = Producto.objects.get(pk=pk)
+    detalle = DetalleBaja.objects.get(producto=producto, baja=list(Baja.objects.all())[-1])
+    producto.existencia += detalle.cantidad
+    producto.save()
+    detalle.delete()
+    return redirect('addbaja')
+
+#Borrar todos los productos de una baja
+def delallpb(request):
+    detalles = DetalleBaja.objects.filter(baja=list(Baja.objects.all())[-1])
+    for detalle in detalles:
+        producto = Producto.objects.get(pk=detalle.producto.pk)
+        producto.existencia += detalle.cantidad
+        producto.save()
+    detalles.delete()
+    return redirect('addbaja')
 
 #Formulario para agregar ventas
 def addventa(request):
@@ -388,6 +486,7 @@ def addventa(request):
                 return redirect('statusventa',venta.pk)
     return render(request, 'addventa.html', context)
 
+#Añadir producto a venta
 def addpv(request):
     venta = list(Venta.objects.all())[-1]
     if request.method == 'POST':
@@ -421,6 +520,7 @@ def addpv(request):
             messages.error(request, 'Completa el formulario de productos por favor')
             return redirect('addventa')
 
+#Eliminar producto de nota de venta
 def delpv(request,pk):
     producto = Producto.objects.get(pk=pk)
     detalle = DetalleVenta.objects.get(producto=producto, venta=list(Venta.objects.all())[-1])
@@ -429,6 +529,7 @@ def delpv(request,pk):
     detalle.delete()
     return redirect('addventa')
 
+#Borrar todos los productos de una venta
 def delallpv(request):
     detalles = DetalleVenta.objects.filter(venta=list(Venta.objects.all())[-1])
     for detalle in detalles:
@@ -441,7 +542,7 @@ def delallpv(request):
 #Lista de ventas
 def ventas(request):
     if request.method == 'POST':
-        ventas = Venta.objects.filter(pk=request.POST['searched']) if request.POST['searched'].isnumeric() else Venta.objects.filter(cliente__apellidos__icontains=request.POST['searched'])
+        ventas = Venta.objects.filter(pk=request.POST['searched']).exclude(status=None) if request.POST['searched'].isnumeric() else Venta.objects.filter(cliente__apellidos__icontains=request.POST['searched'])
         flag = 1 if len(ventas) > 0 else 2
     else:
         ventas = Venta.objects.all().exclude(status=None)
@@ -495,8 +596,132 @@ def statusventa(request,pk):
 
 #Formulario para agregar compras
 def addcompra(request):
-    return render(request, 'addcompra.html')
+    empleados = Empleado.objects.filter(cargo__in=['Administrador','Almacenista'])
+    proveedores = Proveedor.objects.all()
+    detalles = DetalleCompra.objects.filter(compra=list(Compra.objects.all())[-1])
+    productos = []
+    subtotal = 0
+    for detalle in detalles:
+        p = Producto.objects.get(pk=detalle.producto.pk)
+        subtotal += detalle.precio * detalle.cantidad
+        productos.append({
+            'producto': p,
+            'cantidad': detalle.cantidad,
+            'precio': detalle.precio,
+            'pc': detalle.precio * detalle.cantidad,
+        })
+    context = {
+        'empleados': empleados,
+        'proveedores': proveedores,
+        'productos': productos,
+        'subtotal': subtotal,
+        'flag': len(productos),
+    }
+    if request.method == 'POST':
+        try:
+            compra = list(Compra.objects.all())[-1]
+            compra.proveedor = Proveedor.objects.get(pk=request.POST['proveedor'])
+            compra.empleado = Empleado.objects.get(pk=request.POST['empleado'])
+        except:
+            messages.error(request, 'Completa el formulario correctamente por favor')
+            return render(request, 'addcompra.html', context)
+        else:
+            compra.fechaCompra = date.today()
+            compra.save()
+            Compra.objects.create()
+            return redirect('comprainfo',compra.pk)
+    return render(request, 'addcompra.html', context)
+
+#Añadir productos a compra
+def addpc(request):
+    compra = list(Compra.objects.all())[-1]
+    if request.method == 'POST':
+        if request.POST['producto'] != '' and request.POST['cantidad'] != '' and request.POST['precio'] != '':
+            try:
+                producto = Producto.objects.get(pk=request.POST['producto'])
+            except:
+                messages.error(request, 'El producto no existe')
+                return redirect('addcompra')
+            else:
+                if int(request.POST['cantidad']) <= 0:
+                    messages.error(request, 'La cantidad no puede ser negativa o 0')
+                    return redirect('addcompra')
+                elif producto.precio <= int(request.POST['precio']):
+                    messages.error(request, 'No puedes comprar productos más caros que el precio de venta')
+                    return redirect('addcompra')
+                else:
+                    if len(DetalleCompra.objects.filter(compra=compra,producto=producto)) > 0:
+                        detalle = DetalleCompra.objects.get(compra=compra,producto=producto)
+                        detalle.cantidad += int(request.POST['cantidad'])
+                        detalle.precio = int(request.POST['precio'])
+                        detalle.save()
+                        producto.existencia += int(request.POST['cantidad'])
+                        producto.save()
+                    else:
+                        DetalleCompra.objects.create(compra=compra,producto=producto,cantidad=int(request.POST['cantidad']),precio=int(request.POST['precio']))
+                        producto.existencia += int(request.POST['cantidad'])
+                        producto.save()
+                    return redirect('addcompra')
+            return redirect('addcompra')
+        else:
+            messages.error(request, 'Completa el formulario de productos por favor')
+            return redirect('addcompra')
+
+#Eliminar producto de compra
+def delpc(request,pk):
+    producto = Producto.objects.get(pk=pk)
+    detalle = DetalleCompra.objects.get(compra=list(Compra.objects.all())[-1],producto=producto)
+    producto.existencia -= detalle.cantidad
+    producto.save()
+    detalle.delete()
+    return redirect('addcompra')
+
+#Borrar todos los productos de una compra
+def delallpc(request):
+    detalles = DetalleCompra.objects.filter(compra=list(Compra.objects.all())[-1])
+    for detalle in detalles:
+        producto = Producto.objects.get(pk=detalle.producto.pk)
+        producto.existencia -= detalle.cantidad
+        producto.save()
+    detalles.delete()
+    return redirect('addcompra')
 
 #Lista de compras
 def compras(request):
-    return render(request, 'compras.html')
+    if request.method == 'POST':
+        compras = Compra.objects.filter(pk=request.POST['searched']).exclude(proveedor=None) if request.POST['searched'].isnumeric() else Compra.objects.filter(proveedor__nombre__icontains=request.POST['searched'])
+        flag = 1 if len(compras) > 0 else 2
+    else:
+        compras = Compra.objects.all().exclude(proveedor=None)
+        flag = 0
+    context = {
+        'compras': compras,
+        'flag': flag,
+    }
+    return render(request, 'compras.html', context)
+
+#Información de compra
+def comprainfo(request,pk):
+    compra = Compra.objects.get(pk=pk)
+    detalles = DetalleCompra.objects.filter(compra=compra)
+    productos = []
+    subtotal = 0
+    for detalle in detalles:
+        p = Producto.objects.get(pk=detalle.producto.pk)
+        subtotal += detalle.precio * detalle.cantidad
+        productos.append({
+            'producto': p,
+            'cantidad': detalle.cantidad,
+            'precio': detalle.precio,
+            'pc': detalle.precio * detalle.cantidad,
+        })
+    iva = list(Iva.objects.all())[-1]
+    total = subtotal * (1 + iva.porcentaje/100)
+    context = {
+        'compra': compra,
+        'productos': productos,
+        'subtotal': subtotal,
+        'iva': iva,
+        'total': total,
+    }
+    return render(request, 'comprainfo.html', context)

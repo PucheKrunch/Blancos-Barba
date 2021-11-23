@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container">
+    <h2>Baja ID: <b>{{baja.id}}</b></h2>
+    <hr>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">Fecha de baja</th>
+                <th scope="col">ID Compra</th>
+                <th scope="col">Empleado</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+                    <td>{{baja.fechaBaja}}</td>
+                    <td>{{baja.compra.id}}</td>
+                    <td>{{baja.empleado}}</td>
+                </tr>
+        </tbody>
+    </table>
+    <hr>
+    <h4><b>Productos</b></h4>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Descripción</th>
+                <th scope="col">Color</th>
+                <th scope="col">Tamaño</th>
+                <th scope="col">Cantidad</th>
+                <th scope="col">Motivo</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detalle in detalles %}
+                <tr>
+                    <th scope="col">{{detalle.producto.id}}</th>
+                    <td>{{detalle.producto.descripcion}}</td>
+                    <td>{{detalle.producto.color}}</td>
+                    <td>{{detalle.producto.talla}}</td>
+                    <td>{{detalle.cantidad}}</td>
+                    <td>{{detalle.motivo}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

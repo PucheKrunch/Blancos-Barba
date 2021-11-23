@@ -5,46 +5,38 @@
 <div class="container">
     <h2>Bajas registradas</h2>
     <hr>
-    <table class="table">
+    <form class="form-inline" method="POST" action="">
+        {% csrf_token %}
+        <input class="form-control mr-sm-2" type="number" placeholder="Introduce el ID de la baja a buscar" aria-label="Search" name="searched" value="{{ searched }}">
+    </form>
+    <hr>
+    {% if flag == 2 %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            No se encontró ninguna baja con ese ID.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
+    <table class="table table-striped">
         <thead>
             <tr>
                 <th scope="col">ID Baja</th>
                 <th scope="col">ID Compra</th>
-                <th scope="col">Fecha</th>
-                <th scope="col">Empleado que hizo la baja</th>
+                <th scope="col">Fecha baja</th>
+                <th scope="col">Empleado</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <th scope="col">1</th>
-                <th scope="col">1</th>
-                <td>03/11/2021</td>
-                <td>Santiago Benavides</td>
+                {% for baja in bajas %}
+                    <tr>
+                        <td>{{baja.id}}</td>
+                        <td>{{baja.compra.id}}</td>
+                        <td>{{baja.fechaBaja}}</td>
+                        <td>{{baja.empleado}}</td>
+                        <td><td><a style="padding: 5px; background-color: #0d6efd; border-radius: 5px; color: white; text-decoration: none;" href="/bajainfo/{{baja.id}}">Más información</a></td></td>
+                    </tr>
+                {% endfor %}
             </tr>
-        </tbody>
-    </table>
-    <table class="table">
-        <thead>
-            <tr>
-                <th scope="col">ID Producto</th>
-                <th scope="col">Descripción del producto</th>
-                <th scope="col">Cantidad dada de baja</th>
-                <th scope="col">Mótivo</th>
-            </tr>
-        </thead>
-        <tbody>
-                <tr>
-                    <th scope="col">1</th>
-                    <td>Sábanas de seda</td>
-                    <td>5</td>
-                    <td>Empaque dañado</td>
-                </tr>
-                <tr>
-                    <th scope="col">2</th>
-                    <td>Cubrecama</td>
-                    <td>10</td>
-                    <td>Producto dañado</td>
-                </tr>
         </tbody>
     </table>
     <hr>

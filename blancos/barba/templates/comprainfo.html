@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container">
+    <h2>Compra ID: <b>{{compra.id}}</b></h2>
+    <hr>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">Fecha de compra</th>
+                <th scope="col">Proveedor</th>
+                <th scope="col">Empleado</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+                    <td>{{compra.fechaCompra}}</td>
+                    <td>{{compra.proveedor}}</td>
+                    <td>{{compra.empleado}}</td>
+                </tr>
+        </tbody>
+    </table>
+    <hr>
+    <h4><b>Productos</b></h4>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Descripción</th>
+                <th scope="col">Color</th>
+                <th scope="col">Tamaño</th>
+                <th scope="col">Precio unitario</th>
+                <th scope="col">Cantidad</th>
+                <th scope="col">Precio total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in productos %}
+                <tr>
+                    <th scope="col">{{p.producto.id}}</th>
+                    <td>{{p.producto.descripcion}}</td>
+                    <td>{{p.producto.color}}</td>
+                    <td>{{p.producto.talla}}</td>
+                    <td>{{p.precio}}</td>
+                    <td>{{p.cantidad}}</td>
+                    <td>{{p.pc}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p><b>Sub total:</b> ${{subtotal}}</p>
+    <p><b>IVA:</b> {{iva}}%</p>
+    <p><b>Total:</b> ${{total}}</p>
+</div>
+
+{% endblock %}

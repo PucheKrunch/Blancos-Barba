@@ -5,19 +5,27 @@
 <div class="container">
     <h2>Nueva baja</h2>
     <hr>
-    <form method="POST" action="" enctype="multipart/form-data">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                {{message}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    <form method="POST" action="{% url 'addpb' %}" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="form-group">
             <h4>ID Producto</h4>
-            <input type="number" class="form-control" placeholder="ID del producto a dar de baja" value="{{ product_id }}" name="product_id">
+            <input type="number" class="form-control" placeholder="ID del producto a dar de baja" value="{{ producto }}" name="producto">
         </div>
         <div class="form-group">
             <h4>Cantidad del producto</h4>
-            <input type="number" class="form-control" placeholder="Cantidad del producto a dar de baja" value="{{ product_id }}" name="product_id">
+            <input type="number" class="form-control" placeholder="Cantidad del producto a dar de baja" value="{{ cantidad }}" name="cantidad">
         </div>
         <div class="form-group">
             <h4>Motivo de baja</h4>
-            <input type="text" class="form-control" placeholder="Mótivo de la baja del producto" value="{{ motivo }}" name="producto">
+            <input type="text" class="form-control" placeholder="Motivo de la baja del producto" value="{{ motivo }}" name="motivo">
         </div>
         <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Agregar</button>
     </form>
@@ -26,39 +34,47 @@
         {% csrf_token %}
         <div class="form-group">
             <h4>ID Compra</h4>
-            <input type="number" class="form-control" placeholder="ID de la compra" value="{{ compra_id }}" name="compra_id">
+            <input type="number" class="form-control" placeholder="ID de la compra" value="{{ compra }}" name="compra">
         </div>
         <div class="form-group">
             <h4>Empleado que hizo la baja</h4>
             <select class="form-select" name="empleado" value="{{ empleado }}">
-                <option value="1">Santiago Benavides</option>
-                <option value="2">Carlos Barba</option>
+                <option value="" selected disabled hidden>Selecciona un empleado</option>
+                {% for empleado in empleados %}
+                    <option value="{{ empleado.id }}">{{ empleado.nombre }} {{ empleado.apellidos }}</option>
+                {% endfor %}
             </select>
         </div>
         <button type="submit" class="btn btn-success" style="margin-top: 10px;">Confirmar baja</button>
     </form>
     <hr>
-    <h2>Productos</h2>
-    <table class="table">
+    <h2>Productos agregados</h2>
+    {% if flag > 0 %}
+        <a href="{% url 'delallpb' %}" class="btn btn-danger">Borrar baja</a>
+    {% endif %}
+    <table class="table table-striped">
         <thead>
             <tr>
                 <th scope="col">ID</th>
                 <th scope="col">Descripción</th>
                 <th scope="col">Color</th>
                 <th scope="col">Tamaño</th>
-                <th scope="col">Precio neto</th>
-                <th scope="col">Existencia</th>
+                <th scope="col">Cantidad</th>
+                <th scope="col">Motivo</th>
             </tr>
         </thead>
         <tbody>
+            {% for detalle in detalles %}
                 <tr>
-                    <th scope="col">1</th>
-                    <td>Sábanas de seda</td>
-                    <td>Blancas</td>
-                    <td>Matrimonial</td>
-                    <td>$750.00</td>
-                    <td>15</td>
+                    <th scope="col">{{detalle.producto.id}}</th>
+                    <td>{{detalle.producto.descripcion}}</td>
+                    <td>{{detalle.producto.color}}</td>
+                    <td>{{detalle.producto.talla}}</td>
+                    <td>{{detalle.cantidad}}</td>
+                    <td>{{detalle.motivo}}</td>
+                    <td><a style="padding: 5px; background-color: #dc3545; border-radius: 5px; color: white; text-decoration: none;" href="/delpb/{{detalle.producto.id}}">Eliminar</a></td>
                 </tr>
+            {% endfor %}
         </tbody>
     </table>
 </div>

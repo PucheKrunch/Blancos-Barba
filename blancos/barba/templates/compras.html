@@ -5,54 +5,38 @@
 <div class="container">
     <h2>Compras registradas</h2>
     <hr>
+    <form class="form-inline" method="POST" action="">
+        {% csrf_token %}
+        <input class="form-control mr-sm-2" type="search" placeholder="Introduce el nombre del proveedor a buscar o el ID" aria-label="Search" name="searched" value="{{ searched }}">
+    </form>
+    <hr>
+    {% if flag == 2 %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            No se encontró ninguna compra de ese proveedor o ID.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
     <table class="table table-striped">
         <thead>
             <tr>
                 <th scope="col">ID Compra</th>
                 <th scope="col">Fecha</th>
                 <th scope="col">Proveedor</th>
-                <th scope="col">Empleado que realizó la compra</th>
+                <th scope="col">Empleado</th>
             </tr>
         </thead>
         <tbody>
+            {% for compra in compras %}
                 <tr>
-                    <th scope="col">1</th>
-                    <td>02/11/2021</td>
-                    <td>Sedas S.A. de C.V.</td>
-                    <td>Santiago Benavides</td>
+                    <th scope="col">{{compra.id}}</th>
+                    <td>{{compra.fechaCompra}}</td>
+                    <td>{{compra.proveedor}}</td>
+                    <td>{{compra.empleado}}</td>
+                    <td><td><a style="padding: 5px; background-color: #0d6efd; border-radius: 5px; color: white; text-decoration: none;" href="/comprainfo/{{compra.id}}">Más información</a></td></td>
                 </tr>
+            {% endfor %}
         </tbody>
     </table>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th scope="col">ID Producto</th>
-                <th scope="col">Descripción del producto</th>
-                <th scope="col">Precio unitario</th>
-                <th scope="col">Cantidad</th>
-                <th scope="col">Precio</th>
-            </tr>
-        </thead>
-        <tbody>
-                <tr>
-                    <th scope="col">1</th>
-                    <td>Sábanas de seda</td>
-                    <td>$600.00</td>
-                    <td>15</td>
-                    <td>$9000.00</td>
-                </tr>
-                <tr>
-                    <th scope="col">2</th>
-                    <td>Cubrecama</td>
-                    <td>$400.00</td>
-                    <td>20</td>
-                    <td>$8000.00</td>
-                </tr>
-        </tbody>
-    </table>
-    <p><b>Subtotal: </b>$17000.00</p>
-    <p><b>IVA: </b>16%</p>
-    <p><b>Total: </b>$19720.00</p>
     <hr>
 </div>
 

@@ -68,31 +68,19 @@ class Compra(models.Model):
     proveedor = models.ForeignKey(Proveedor,on_delete=models.CASCADE,null=True,blank=True)
     empleado = models.ForeignKey(Empleado,on_delete=models.CASCADE,null=True,blank=True)
 
-    def __str__(self):
-        return self.proveedor.nombre
-
 class DetalleCompra(models.Model):
     compra = models.ForeignKey(Compra,on_delete=models.CASCADE,null=True,blank=True)
     producto = models.ForeignKey(Producto,on_delete=models.CASCADE,null=True,blank=True)
     cantidad = models.IntegerField(null=True,blank=True)
     precio = models.FloatField(null=True,blank=True)
 
-    def __str__(self):
-        return self.compra.proveedor.nombre
-
 class Baja(models.Model):
     fechaBaja = models.DateField(null=True,blank=True)
     compra = models.ForeignKey(Compra,on_delete=models.CASCADE,null=True,blank=True)
     empleado = models.ForeignKey(Empleado,on_delete=models.CASCADE,null=True,blank=True)
-
-    def __str__(self):
-        return str(self.fechaBaja)
 
 class DetalleBaja(models.Model):
     baja = models.ForeignKey(Baja,on_delete=models.CASCADE,null=True,blank=True)
     producto = models.ForeignKey(Producto,on_delete=models.CASCADE,null=True,blank=True)
     cantidad = models.IntegerField(null=True,blank=True)
     motivo = models.CharField(max_length=150,null=True,blank=True)
-
-    def __str__(self):
-        return str(self.baja.fechaBaja)
