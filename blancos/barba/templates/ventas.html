@@ -7,12 +7,12 @@
     <hr>
     <form class="form-inline" method="POST" action="">
         {% csrf_token %}
-        <input class="form-control mr-sm-2" type="search" placeholder="Introduce los apellidos del cliente a buscar" aria-label="Search" name="searched" value="{{ searched }}">
+        <input class="form-control mr-sm-2" type="search" placeholder="Introduce los apellidos del cliente a buscar o el ID" aria-label="Search" name="searched" value="{{ searched }}">
     </form>
     <hr>
     {% if flag == 2 %}
         <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            No se encontró ningún cliente con esos apellidos.
+            No se encontró ningún cliente con esos apellidos o ID.
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     {% endif %}
@@ -21,6 +21,7 @@
             <tr>
                 <th scope="col">ID Venta</th>
                 <th scope="col">Cliente</th>
+                <th scope="col">Fecha</th>
                 <th scope="col">Vendedor</th>
                 <th scope="col">Status</th>
             </tr>
@@ -30,6 +31,7 @@
                 <tr>
                     <th scope="col">{{venta.id}}</th>
                     <td>{{venta.cliente}}</td>
+                    <td>{{venta.fechaVenta}}</td>
                     <td>{{venta.vendedor}}</td>
                     <td>{{venta.status}}</td>
                     <td><td><a style="padding: 5px; background-color: #0d6efd; border-radius: 5px; color: white; text-decoration: none;" href="/statusventa/{{venta.id}}">Más información</a></td></td>

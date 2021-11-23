@@ -7,12 +7,12 @@
     <hr>
     <form class="form-inline" method="POST" action="">
         {% csrf_token %}
-        <input class="form-control mr-sm-2" type="search" placeholder="Introduce el nombre del proveedor a buscar" aria-label="Search" name="searched" value="{{ item_searched }}">
+        <input class="form-control mr-sm-2" type="search" placeholder="Introduce el nombre del proveedor a buscar o el ID" aria-label="Search" name="searched" value="{{ item_searched }}">
     </form>
     <hr>
     {% if flag == 2 %}
         <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            No se encontró ningún producto con ese nombre.
+            No se encontró ningún producto con ese nombre o ID.
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     {% endif %}

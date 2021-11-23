@@ -69,7 +69,7 @@ def addemp(request):
 #Lista de empleados
 def emps(request):
     if request.method == 'POST':
-        empleados = Empleado.objects.filter(apellidos__contains=request.POST['searched'])
+        empleados = Empleado.objects.filter(pk=request.POST['searched']) if request.POST['searched'].isnumeric() else Empleado.objects.filter(apellidos__contains=request.POST['searched'])
         flag = 1 if len(empleados) > 0 else 2
     else:
         empleados = Empleado.objects.all()
@@ -156,7 +156,7 @@ def addclient(request):
 #Lista de clientes
 def clients(request):
     if request.method == 'POST':
-        clientes = Cliente.objects.filter(apellidos__contains=request.POST['searched'])
+        clientes = Cliente.objects.filter(pk=request.POST['searched']) if request.POST['searched'].isnumeric() else Cliente.objects.filter(apellidos__contains=request.POST['searched'])
         flag = 1 if len(clientes) > 0 else 2
     else:
         clientes = Cliente.objects.all()
@@ -225,7 +225,7 @@ def addproduct(request):
 #Lista de productos
 def products(request):
     if request.method == 'POST':
-        productos = Producto.objects.filter(descripcion__contains=request.POST['searched'])
+        productos = Producto.objects.filter(pk=request.POST['searched']) if request.POST['searched'].isnumeric() else Producto.objects.filter(descripcion__contains=request.POST['searched'])
         flag = 1 if len(productos) > 0 else 2
     else:
         productos = Producto.objects.all()
@@ -301,7 +301,7 @@ def addprov(request):
 #Lista de proveedores
 def provs(request):
     if request.method == 'POST':
-        proveedores = Proveedor.objects.filter(nombre__contains=request.POST['searched'])
+        proveedores = Proveedor.objects.filter(pk=request.POST['searched']) if request.POST['searched'].isnumeric() else Proveedor.objects.filter(nombre__contains=request.POST['searched'])
         flag = 1 if len(proveedores) > 0 else 2
     else:
         proveedores = Proveedor.objects.all()
@@ -441,7 +441,7 @@ def delallpv(request):
 #Lista de ventas
 def ventas(request):
     if request.method == 'POST':
-        ventas = Venta.objects.filter(cliente__apellidos__contains=request.POST['searched'])
+        ventas = Venta.objects.filter(pk=request.POST['searched']) if request.POST['searched'].isnumeric() else Venta.objects.filter(cliente__apellidos__icontains=request.POST['searched'])
         flag = 1 if len(ventas) > 0 else 2
     else:
         ventas = Venta.objects.all().exclude(status=None)

@@ -7,12 +7,12 @@
     <hr>
     <form class="form-inline" method="POST" action="{% url 'emps' %}">
         {% csrf_token %}
-        <input class="form-control mr-sm-2" type="search" placeholder="Introduce los apellidos del empleado a buscar" aria-label="Search" name="searched" value="{{ searched }}">
+        <input class="form-control mr-sm-2" type="search" placeholder="Introduce los apellidos del empleado a buscar o el ID" aria-label="Search" name="searched" value="{{ searched }}">
     </form>
     <hr>
     {% if flag == 2 %}
         <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            No se encontró ningún empleado con esos apellidos.
+            No se encontró ningún empleado con esos apellidos o ID.
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     {% endif %}
