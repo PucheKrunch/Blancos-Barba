@@ -333,7 +333,10 @@ def mprov(request,pk):
         return render(request, 'mprov.html', context)
 
 #Formulario para agregar bajas
-def addbaja(request):
+def addbaja(request,pk):
+    baja = list(Baja.objects.all())[-1]
+    baja.compra = Compra.objects.get(pk=pk)
+    baja.save()
     empleados = Empleado.objects.filter(cargo__in=['Administrador','Almacenista'])
     detalles = DetalleBaja.objects.filter(baja=list(Baja.objects.all())[-1])
     context = {
@@ -342,17 +345,11 @@ def addbaja(request):
         'flag': len(detalles),
     }
     if request.method == 'POST':
-        baja = list(Baja.objects.all())[-1]
         try:
             baja.empleado = Empleado.objects.get(pk=request.POST['empleado'])
         except:
             messages.error(request, 'Completa el formulario correctamente por favor')
             return render(request, 'addbaja.html', context)
-        compra = Compra.objects.filter(pk=int(request.POST['compra']))
-        if len(compra) == 0:
-            messages.error(request, 'No existe esa compra')
-            return render(request, 'addbaja.html', context)
-        baja.compra = compra[0]
         baja.fechaBaja = date.today()
         baja.save()
         Baja.objects.create()
@@ -392,22 +389,24 @@ def addpb(request):
                     messages.error(request, 'La cantidad no puede ser negativa o 0')
                     return redirect('addbaja')
                 else:
-                    if len(DetalleBaja.objects.filter(producto=producto, baja=baja)) > 0:
-                        detalle = DetalleBaja.objects.get(producto=producto, baja=baja)
-                        detalle.cantidad += int(request.POST['cantidad'])
-                        detalle.motivo = request.POST['motivo']
-                        detalle.save()
-                        producto.existencia -= int(request.POST['cantidad'])
-                        producto.save()
-                    else:
+                    if len(DetalleCompra.objects.filter(compra=baja.compra, producto=producto)) > 0:
+                        if int(request.POST['cantidad']) > int(DetalleCompra.objects.get(compra=baja.compra, producto=producto).cantidad):
+                            messages.error(request, 'La cantidad no puede ser mayor a la cantidad comprada')
+                            return redirect('addbaja',baja.compra.pk)
+                        elif int(request.POST['cantidad']) > int(producto.existencia):
+                            messages.error(request, 'La cantidad no puede ser mayor a la cantidad registrada')
+                            return redirect('addbaja',baja.compra.pk)
                         DetalleBaja.objects.create(producto=producto, cantidad=int(request.POST['cantidad']), baja=baja, motivo=request.POST['motivo'])
                         producto.existencia -= int(request.POST['cantidad'])
                         producto.save()
-                    return redirect('addbaja')
-            return redirect('addbaja')
+                        return redirect('addbaja',baja.compra.pk)
+                    else:
+                        messages.error(request, 'El producto no está en la compra')
+                        return redirect('addbaja',baja.compra.pk)
+            return redirect('addbaja',baja.compra.pk)
         else:
             messages.error(request, 'Completa el formulario de productos por favor')
-            return redirect('addbaja')
+            return redirect('addbaja',baja.compra.pk)
 
 #Información de la baja
 def bajainfo(request,pk):
@@ -426,7 +425,7 @@ def delpb(request,pk):
     producto.existencia += detalle.cantidad
     producto.save()
     detalle.delete()
-    return redirect('addbaja')
+    return redirect('addbaja',list(Baja.objects.all())[-1].compra.pk)
 
 #Borrar todos los productos de una baja
 def delallpb(request):
@@ -436,7 +435,7 @@ def delallpb(request):
         producto.existencia += detalle.cantidad
         producto.save()
     detalles.delete()
-    return redirect('addbaja')
+    return redirect('addbaja',list(Baja.objects.all())[-1].compra.pk)
 
 #Formulario para agregar ventas
 def addventa(request):
@@ -653,7 +652,9 @@ def addpc(request):
                     if len(DetalleCompra.objects.filter(compra=compra,producto=producto)) > 0:
                         detalle = DetalleCompra.objects.get(compra=compra,producto=producto)
                         detalle.cantidad += int(request.POST['cantidad'])
-                        detalle.precio = int(request.POST['precio'])
+                        if int(detalle.precio) != int(request.POST['precio']):
+                            messages.error(request, 'El precio del producto no puede ser diferente al agregado previamente')
+                            messages.error(request, 'Se agregó la cantidad con el precio previamente registrado')
                         detalle.save()
                         producto.existencia += int(request.POST['cantidad'])
                         producto.save()
