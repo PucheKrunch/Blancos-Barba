@@ -345,6 +345,9 @@ def addbaja(request,pk):
         'flag': len(detalles),
     }
     if request.method == 'POST':
+        if len(DetalleBaja.objects.filter(baja=list(Baja.objects.all())[-1])) == 0:
+            messages.error(request, 'Agrega al menos un producto por favor')
+            return render(request, 'addbaja.html', context)
         try:
             baja.empleado = Empleado.objects.get(pk=request.POST['empleado'])
         except:
@@ -460,6 +463,9 @@ def addventa(request):
         'vendedores': vendedores,
     }
     if request.method == 'POST':
+        if len(DetalleVenta.objects.filter(venta=list(Venta.objects.all())[-1])) == 0:
+            messages.error(request, 'Agrega al menos 1 producto a la venta')
+            return redirect('addventa')
         try:
             venta = list(Venta.objects.all())[-1]
             venta.vendedor = Empleado.objects.get(pk=request.POST['vendedor'])
@@ -617,6 +623,9 @@ def addcompra(request):
         'flag': len(productos),
     }
     if request.method == 'POST':
+        if len(DetalleCompra.objects.filter(compra=list(Compra.objects.all())[-1])) == 0:
+            messages.error(request, 'Agrega al menos un producto a la compra por favor')
+            return redirect('addcompra')
         try:
             compra = list(Compra.objects.all())[-1]
             compra.proveedor = Proveedor.objects.get(pk=request.POST['proveedor'])
