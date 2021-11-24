@@ -443,7 +443,7 @@ def delallpb(request):
 #Formulario para agregar ventas
 def addventa(request):
     repartidores = Empleado.objects.filter(cargo='Repartidor')
-    vendedores = Empleado.objects.filter(cargo='Vendedor')
+    vendedores = Empleado.objects.filter(cargo__in=['Administrador','Vendedor'])
     detalles = DetalleVenta.objects.filter(venta=list(Venta.objects.all())[-1])
     productos = []
     subtotal = 0
