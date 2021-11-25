@@ -98,7 +98,7 @@ def memp(request,pk):
         direccion = request.POST['direccion']
         telefono = request.POST['telefono']
         sueldo = request.POST['sueldo']
-        if int(sueldo) <= 0:
+        if float(sueldo) <= 0:
             messages.error(request, 'El sueldo no puede ser negativo o 0')
             return redirect('memp',pk)
         context = {
@@ -245,6 +245,9 @@ def mproduct(request,pk):
     if request.method == 'POST':
         form = ModifyProductoForm(request.POST)
         existencia = request.POST['existencia']
+        if request.POST['existencia'] == '':
+            messages.error(request, 'No se modificó la existencia')
+            return redirect('products')
         if int(existencia) <= 0:
             messages.error(request, 'La existencia no puede ser negativa o 0')
             return redirect('mproduct',pk)
@@ -339,10 +342,23 @@ def addbaja(request,pk):
     baja.save()
     empleados = Empleado.objects.filter(cargo__in=['Administrador','Almacenista'])
     detalles = DetalleBaja.objects.filter(baja=list(Baja.objects.all())[-1])
+    productos = []
+    for producto in DetalleCompra.objects.filter(compra=Compra.objects.get(pk=pk)):
+        productos.append({
+            'id': producto.producto.id,
+            'descripcion': producto.producto.descripcion,
+            'color': producto.producto.color,
+            'talla': producto.producto.talla,
+            'comprado': producto.cantidad,
+        })
     context = {
         'empleados': empleados,
         'detalles': detalles,
         'flag': len(detalles),
+        'id': baja.id,
+        'fecha': date.today(),
+        'productos': productos,
+        'compra': Compra.objects.get(pk=pk),
     }
     if request.method == 'POST':
         if len(DetalleBaja.objects.filter(baja=list(Baja.objects.all())[-1])) == 0:
@@ -355,6 +371,10 @@ def addbaja(request,pk):
             return render(request, 'addbaja.html', context)
         baja.fechaBaja = date.today()
         baja.save()
+        for detalle in DetalleBaja.objects.filter(baja=list(Baja.objects.all())[-1]):
+            producto = Producto.objects.get(pk=detalle.producto.id)
+            producto.existencia -= detalle.cantidad
+            producto.save()
         Baja.objects.create()
         return redirect('bajainfo',baja.pk)
     return render(request, 'addbaja.html', context)
@@ -400,8 +420,6 @@ def addpb(request):
                             messages.error(request, 'La cantidad no puede ser mayor a la cantidad registrada')
                             return redirect('addbaja',baja.compra.pk)
                         DetalleBaja.objects.create(producto=producto, cantidad=int(request.POST['cantidad']), baja=baja, motivo=request.POST['motivo'])
-                        producto.existencia -= int(request.POST['cantidad'])
-                        producto.save()
                         return redirect('addbaja',baja.compra.pk)
                     else:
                         messages.error(request, 'El producto no está en la compra')
@@ -425,18 +443,12 @@ def bajainfo(request,pk):
 def delpb(request,pk):
     producto = Producto.objects.get(pk=pk)
     detalle = DetalleBaja.objects.get(producto=producto, baja=list(Baja.objects.all())[-1])
-    producto.existencia += detalle.cantidad
-    producto.save()
     detalle.delete()
     return redirect('addbaja',list(Baja.objects.all())[-1].compra.pk)
 
 #Borrar todos los productos de una baja
 def delallpb(request):
     detalles = DetalleBaja.objects.filter(baja=list(Baja.objects.all())[-1])
-    for detalle in detalles:
-        producto = Producto.objects.get(pk=detalle.producto.pk)
-        producto.existencia += detalle.cantidad
-        producto.save()
     detalles.delete()
     return redirect('addbaja',list(Baja.objects.all())[-1].compra.pk)
 
@@ -457,15 +469,25 @@ def addventa(request):
         })
     context = {
         'productos': productos,
-        'subtotal': subtotal,
+        'subtotal': round(subtotal,2),
         'flag': len(productos),
         'repartidores': repartidores,
         'vendedores': vendedores,
+        'id': list(Venta.objects.all())[-1].pk,
+        'cliente_flag': 2,
+        'fecha': date.today(),
+        'info_flag': 2,
+        'total': round(subtotal * (1 + list(Iva.objects.all())[-1].porcentaje/100),2),
+        'iva': round(subtotal * (list(Iva.objects.all())[-1].porcentaje/100),2),
     }
     if request.method == 'POST':
-        if len(DetalleVenta.objects.filter(venta=list(Venta.objects.all())[-1])) == 0:
+        if request.POST['cliente'] != '' and request.POST['direccion'] == '':
+            cliente = Cliente.objects.filter(pk=request.POST['cliente'])
+            context.update({'cliente_flag': len(cliente), 'cliente': cliente[0] if len(cliente) > 0 else None})
+            return render(request, 'addventa.html', context)
+        elif len(DetalleVenta.objects.filter(venta=list(Venta.objects.all())[-1])) == 0:
             messages.error(request, 'Agrega al menos 1 producto a la venta')
-            return redirect('addventa')
+            return render(request, 'addventa.html', context)
         try:
             venta = list(Venta.objects.all())[-1]
             venta.vendedor = Empleado.objects.get(pk=request.POST['vendedor'])
@@ -486,61 +508,231 @@ def addventa(request):
                     return render(request, 'addventa.html', context)
                 venta.direccion = request.POST['direccion']
                 venta.status = 'Preparando entrega'
+                venta.total = round(total,2)
                 venta.save()
                 Venta.objects.create()
+                for detalle in DetalleVenta.objects.filter(venta=list(Venta.objects.all())[-2]):
+                    producto = Producto.objects.get(pk=detalle.producto.pk)
+                    producto.existencia -= detalle.cantidad
+                    producto.save()
                 return redirect('statusventa',venta.pk)
     return render(request, 'addventa.html', context)
 
 #Añadir producto a venta
 def addpv(request):
     venta = list(Venta.objects.all())[-1]
+    productos = []
+    subtotal = 0
+    for detalle in DetalleVenta.objects.filter(venta=list(Venta.objects.all())[-1]):
+        p = Producto.objects.get(pk=detalle.producto.pk)
+        subtotal += p.precio * detalle.cantidad
+        productos.append({
+            'producto': p,
+            'cantidad': detalle.cantidad,
+            'pc': p.precio * detalle.cantidad,
+        })
     if request.method == 'POST':
-        if request.POST['producto'] != '' and request.POST['cantidad'] != '':
+        if request.POST['producto'] != '' and request.POST['cantidad'] == '':
+            producto = Producto.objects.filter(pk=request.POST['producto'])
+            context = {
+                'producto': producto[0] if len(producto) > 0 else None,
+                'productos': productos,
+                'subtotal': round(subtotal,2),
+                'flag': len(productos),
+                'cliente_flag': 2,
+                'repartidores': Empleado.objects.filter(cargo='Repartidor'),
+                'vendedores': Empleado.objects.filter(cargo__in=['Administrador','Vendedor']),
+                'id': list(Venta.objects.all())[-1].pk,
+                'fecha': date.today(),
+                'info_flag': len(producto),
+                'total': round(subtotal * (1 + list(Iva.objects.all())[-1].porcentaje/100),2),
+                'iva': round(subtotal * (list(Iva.objects.all())[-1].porcentaje/100),2),
+            }
+            return render(request, 'addventa.html', context)
+        elif request.POST['producto'] != '' and request.POST['cantidad'] != '':
             try:
                 producto = Producto.objects.get(pk=request.POST['producto'])
             except:
                 messages.error(request, 'El producto no existe')
-                return redirect('addventa')
+                context = {
+                    'producto': producto,
+                    'productos': productos,
+                    'cliente_flag': 2,
+                    'subtotal': round(subtotal,2),
+                    'flag': len(productos),
+                    'repartidores': Empleado.objects.filter(cargo='Repartidor'),
+                    'vendedores': Empleado.objects.filter(cargo__in=['Administrador','Vendedor']),
+                    'id': list(Venta.objects.all())[-1].pk,
+                    'fecha': date.today(),
+                    'info_flag': 2,
+                    'total': round(subtotal * (1 + list(Iva.objects.all())[-1].porcentaje/100),2),
+                    'iva': round(subtotal * (list(Iva.objects.all())[-1].porcentaje/100),2),
+                }
+                return render(request, 'addventa.html', context)
             else:
                 if int(request.POST['cantidad']) <= 0:
                     messages.error(request, 'La cantidad no puede ser negativa o 0')
-                    return redirect('addventa')
+                    context = {
+                        'producto': producto,
+                        'productos': productos,
+                        'subtotal': round(subtotal,2),
+                        'flag': len(productos),
+                        'cliente_flag': 2,
+                        'repartidores': Empleado.objects.filter(cargo='Repartidor'),
+                        'vendedores': Empleado.objects.filter(cargo__in=['Administrador','Vendedor']),
+                        'id': list(Venta.objects.all())[-1].pk,
+                        'fecha': date.today(),
+                        'info_flag': 1,
+                        'total': round(subtotal * (1 + list(Iva.objects.all())[-1].porcentaje/100),2),
+                        'iva': round(subtotal * (list(Iva.objects.all())[-1].porcentaje/100),2),
+                    }
+                    return render(request, 'addventa.html', context)
                 elif producto.existencia < int(request.POST['cantidad']):
                     messages.error(request, 'No hay suficiente existencia')
-                    return redirect('addventa')
+                    context = {
+                        'producto': producto,
+                        'productos': productos,
+                        'subtotal': round(subtotal,2),
+                        'flag': len(productos),
+                        'cliente_flag': 2,
+                        'repartidores': Empleado.objects.filter(cargo='Repartidor'),
+                        'vendedores': Empleado.objects.filter(cargo__in=['Administrador','Vendedor']),
+                        'id': list(Venta.objects.all())[-1].pk,
+                        'fecha': date.today(),
+                        'info_flag': 1,
+                        'total': round(subtotal * (1 + list(Iva.objects.all())[-1].porcentaje/100),2),
+                        'iva': round(subtotal * (list(Iva.objects.all())[-1].porcentaje/100),2),
+                    }
+                    return render(request, 'addventa.html', context)
                 else:
                     if len(DetalleVenta.objects.filter(venta=venta).filter(producto=request.POST['producto'])) > 0:
                         detalle = DetalleVenta.objects.get(venta=venta, producto=request.POST['producto'])
-                        detalle.cantidad += int(request.POST['cantidad'])
-                        detalle.save()
-                        producto.existencia -= int(request.POST['cantidad'])
-                        producto.save()
+                        if int(request.POST['cantidad']) + int(detalle.cantidad) > producto.existencia:
+                            messages.error(request, 'La cantidad supera al stock')
+                            subtotal = 0
+                            productos = []
+                            for detalle in DetalleVenta.objects.filter(venta=list(Venta.objects.all())[-1]):
+                                p = Producto.objects.get(pk=detalle.producto.pk)
+                                subtotal += p.precio * detalle.cantidad
+                                productos.append({
+                                    'producto': p,
+                                    'cantidad': detalle.cantidad,
+                                    'precio': p.precio,
+                                    'pc': p.precio * detalle.cantidad,
+                                })
+                            context = {
+                                'producto': producto,
+                                'productos': productos,
+                                'subtotal': round(subtotal,2),
+                                'flag': len(productos),
+                                'cliente_flag': 2,
+                                'repartidores': Empleado.objects.filter(cargo='Repartidor'),
+                                'vendedores': Empleado.objects.filter(cargo__in=['Administrador','Vendedor']),
+                                'id': list(Venta.objects.all())[-1].pk,
+                                'fecha': date.today(),
+                                'info_flag': 1,
+                                'total': round(subtotal * (1 + list(Iva.objects.all())[-1].porcentaje/100),2),
+                                'iva': round(subtotal * (list(Iva.objects.all())[-1].porcentaje/100),2),
+                            }
+                            return render(request, 'addventa.html', context)
+                        else:
+                            detalle.cantidad += int(request.POST['cantidad'])
+                            detalle.save()
                     else:
-                        producto.existencia -= int(request.POST['cantidad'])
-                        producto.save()
                         DetalleVenta.objects.create(venta=venta, producto=producto, cantidad=request.POST['cantidad'])
-                    return redirect('addventa')
+                    subtotal = 0
+                    productos = []
+                    for detalle in DetalleVenta.objects.filter(venta=list(Venta.objects.all())[-1]):
+                        p = Producto.objects.get(pk=detalle.producto.pk)
+                        subtotal += p.precio * detalle.cantidad
+                        productos.append({
+                            'producto': p,
+                            'cantidad': detalle.cantidad,
+                            'precio': p.precio,
+                            'pc': p.precio * detalle.cantidad,
+                        })
+                    context = {
+                        'producto': producto,
+                        'productos': productos,
+                        'subtotal': round(subtotal,2),
+                        'cliente_flag': 2,
+                        'flag': len(productos),
+                        'repartidores': Empleado.objects.filter(cargo='Repartidor'),
+                        'vendedores': Empleado.objects.filter(cargo__in=['Administrador','Vendedor']),
+                        'id': list(Venta.objects.all())[-1].pk,
+                        'fecha': date.today(),
+                        'info_flag': 1,
+                        'total': round(subtotal * (1 + list(Iva.objects.all())[-1].porcentaje/100),2),
+                        'iva': round(subtotal * (list(Iva.objects.all())[-1].porcentaje/100),2),
+                    }
+                    return render(request, 'addventa.html', context)
             return redirect('addventa')
         else:
+            producto = Producto.objects.filter(pk=request.POST['producto'])
+            subtotal = 0
+            productos = []
+            for detalle in DetalleVenta.objects.filter(venta=list(Venta.objects.all())[-1]):
+                p = Producto.objects.get(pk=detalle.producto.pk)
+                subtotal += detalle.precio * detalle.cantidad
+                productos.append({
+                    'producto': p,
+                    'cantidad': detalle.cantidad,
+                    'precio': detalle.precio,
+                    'pc': detalle.precio * detalle.cantidad,
+                })
+            context = {
+                'producto': producto,
+                'productos': productos,
+                'subtotal': round(subtotal,2),
+                'flag': len(productos),
+                'cliente_flag': 2,
+                'repartidores': Empleado.objects.filter(cargo='Repartidor'),
+                'vendedores': Empleado.objects.filter(cargo__in=['Administrador','Vendedor']),
+                'id': list(Venta.objects.all())[-1].pk,
+                'fecha': date.today(),
+                'info_flag': 2,
+                'total': round(subtotal * (1 + list(Iva.objects.all())[-1].porcentaje/100),2),
+                'iva': round(subtotal * (list(Iva.objects.all())[-1].porcentaje/100),2),
+            }
             messages.error(request, 'Completa el formulario de productos por favor')
-            return redirect('addventa')
+            return render(request, 'addventa.html', context)
 
 #Eliminar producto de nota de venta
 def delpv(request,pk):
     producto = Producto.objects.get(pk=pk)
     detalle = DetalleVenta.objects.get(producto=producto, venta=list(Venta.objects.all())[-1])
-    producto.existencia += detalle.cantidad
-    producto.save()
     detalle.delete()
+    producto = Producto.objects.filter(pk=pk)
+    subtotal = 0
+    productos = []
+    for detalle in DetalleCompra.objects.filter(compra=list(Compra.objects.all())[-1]):
+        p = Producto.objects.get(pk=detalle.producto.pk)
+        subtotal += detalle.precio * detalle.cantidad
+        productos.append({
+            'producto': p,
+            'cantidad': detalle.cantidad,
+            'precio': detalle.precio,
+            'pc': detalle.precio * detalle.cantidad,
+        })
+    context = {
+        'producto': producto[0] if len(producto) > 0 else None,
+        'productos': productos,
+        'subtotal': round(subtotal,2),
+        'flag': len(productos),
+        'repartidores': Empleado.objects.filter(cargo='Repartidor'),
+        'vendedores': Empleado.objects.filter(cargo__in=['Administrador','Vendedor']),
+        'id': list(Venta.objects.all())[-1].pk,
+        'fecha': date.today(),
+        'info_flag': 2,
+        'cliente_flag': 2,
+        'total': round(subtotal * (1 + list(Iva.objects.all())[-1].porcentaje/100),2),
+        'iva': round(subtotal * (list(Iva.objects.all())[-1].porcentaje/100),2),
+    }
     return redirect('addventa')
 
 #Borrar todos los productos de una venta
 def delallpv(request):
     detalles = DetalleVenta.objects.filter(venta=list(Venta.objects.all())[-1])
-    for detalle in detalles:
-        producto = Producto.objects.get(pk=detalle.producto.pk)
-        producto.existencia += detalle.cantidad
-        producto.save()
     detalles.delete()
     return redirect('addventa')
 
@@ -561,8 +753,12 @@ def ventas(request):
 #Modificar status de venta
 def statusventa(request,pk):
     if request.method == 'POST':
-        form = ModifyVentaForm(request.POST)
-        if form.is_valid():
+        try:
+            request.POST['status']
+        except:
+            messages.error(request, 'Selecciona un status a cambiar')
+            return redirect('statusventa',pk)
+        if request.POST['status'] != '':
             venta = Venta.objects.get(pk=pk)
             venta.status = request.POST['status']
             venta.save()
@@ -588,11 +784,11 @@ def statusventa(request,pk):
             'cantidad': detalle.cantidad,
             'pc': p.precio * detalle.cantidad,
         })
-    iva = list(Iva.objects.all())[-1]
-    total = subtotal * (1 + iva.porcentaje/100)
+    iva = round(subtotal * (list(Iva.objects.all())[-1].porcentaje/100),2)
+    total = round(subtotal * (1 + list(Iva.objects.all())[-1].porcentaje/100),2)
     context = {
         'venta': venta,
-        'subtotal': subtotal,
+        'subtotal': round(subtotal,2),
         'iva': iva,
         'total': total,
         'productos': productos,
@@ -619,13 +815,18 @@ def addcompra(request):
         'empleados': empleados,
         'proveedores': proveedores,
         'productos': productos,
-        'subtotal': subtotal,
+        'subtotal': round(subtotal,2),
         'flag': len(productos),
+        'id': Compra.objects.get(pk=list(Compra.objects.all())[-1].pk).pk,
+        'fecha': date.today(),
+        'info_flag': 2,
+        'total': round(subtotal * (1 + list(Iva.objects.all())[-1].porcentaje/100),2),
+        'iva': round(subtotal * (list(Iva.objects.all())[-1].porcentaje/100),2),
     }
     if request.method == 'POST':
         if len(DetalleCompra.objects.filter(compra=list(Compra.objects.all())[-1])) == 0:
             messages.error(request, 'Agrega al menos un producto a la compra por favor')
-            return redirect('addcompra')
+            return render(request, 'addcompra.html', context)
         try:
             compra = list(Compra.objects.all())[-1]
             compra.proveedor = Proveedor.objects.get(pk=request.POST['proveedor'])
@@ -637,26 +838,95 @@ def addcompra(request):
             compra.fechaCompra = date.today()
             compra.save()
             Compra.objects.create()
+            for detalle in DetalleCompra.objects.filter(compra=list(Compra.objects.all())[-2]):
+                producto = Producto.objects.get(pk=detalle.producto.pk)
+                producto.existencia += detalle.cantidad
+                producto.save()
             return redirect('comprainfo',compra.pk)
     return render(request, 'addcompra.html', context)
 
 #Añadir productos a compra
 def addpc(request):
     compra = list(Compra.objects.all())[-1]
+    subtotal = 0
+    productos = []
+    for detalle in DetalleCompra.objects.filter(compra=list(Compra.objects.all())[-1]):
+        p = Producto.objects.get(pk=detalle.producto.pk)
+        subtotal += detalle.precio * detalle.cantidad
+        productos.append({
+            'producto': p,
+            'cantidad': detalle.cantidad,
+            'precio': detalle.precio,
+            'pc': detalle.precio * detalle.cantidad,
+        })
     if request.method == 'POST':
-        if request.POST['producto'] != '' and request.POST['cantidad'] != '' and request.POST['precio'] != '':
+        if request.POST['producto'] != '' and request.POST['cantidad'] == '' and request.POST['precio'] == '':
+            producto = Producto.objects.filter(pk=request.POST['producto'])
+            context = {
+                'empleados': Empleado.objects.filter(cargo__in=['Administrador','Almacenista']),
+                'proveedores': Proveedor.objects.all(),
+                'productos': productos,
+                'producto': producto[0] if len(producto) > 0 else None,
+                'info_flag': len(producto),
+                'flag': len(productos),
+                'id': Compra.objects.get(pk=list(Compra.objects.all())[-1].pk).pk,
+                'fecha': date.today(),
+                'subtotal': round(subtotal,2),
+                'total': round(subtotal * (1 + list(Iva.objects.all())[-1].porcentaje/100),2),
+                'iva': round(subtotal * (list(Iva.objects.all())[-1].porcentaje/100),2),
+            }
+            return render(request, 'addcompra.html', context)
+        elif request.POST['producto'] != '' and request.POST['cantidad'] != '' and request.POST['precio'] != '':
             try:
                 producto = Producto.objects.get(pk=request.POST['producto'])
             except:
                 messages.error(request, 'El producto no existe')
-                return redirect('addcompra')
+                context = {
+                    'empleados': Empleado.objects.filter(cargo__in=['Administrador','Almacenista']),
+                    'proveedores': Proveedor.objects.all(),
+                    'productos': productos,
+                    'info_flag': 2,
+                    'flag': len(productos),
+                    'id': Compra.objects.get(pk=list(Compra.objects.all())[-1].pk).pk,
+                    'fecha': date.today(),
+                    'subtotal': round(subtotal,2),
+                    'total': round(subtotal * (1 + list(Iva.objects.all())[-1].porcentaje/100),2),
+                    'iva': round(subtotal * (list(Iva.objects.all())[-1].porcentaje/100),2),
+                }
+                return render(request, 'addcompra.html', context)
             else:
                 if int(request.POST['cantidad']) <= 0:
                     messages.error(request, 'La cantidad no puede ser negativa o 0')
-                    return redirect('addcompra')
+                    context = {
+                        'empleados': Empleado.objects.filter(cargo__in=['Administrador','Almacenista']),
+                        'proveedores': Proveedor.objects.all(),
+                        'productos': productos,
+                        'producto': producto,
+                        'info_flag': 1,
+                        'flag': len(productos),
+                        'id': Compra.objects.get(pk=list(Compra.objects.all())[-1].pk).pk,
+                        'fecha': date.today(),
+                        'subtotal': round(subtotal,2),
+                        'total': round(subtotal * (1 + list(Iva.objects.all())[-1].porcentaje/100),2),
+                        'iva': round(subtotal * (list(Iva.objects.all())[-1].porcentaje/100),2),
+                    }
+                    return render(request, 'addcompra.html', context)
                 elif producto.precio <= int(request.POST['precio']):
                     messages.error(request, 'No puedes comprar productos más caros que el precio de venta')
-                    return redirect('addcompra')
+                    context = {
+                        'empleados': Empleado.objects.filter(cargo__in=['Administrador','Almacenista']),
+                        'proveedores': Proveedor.objects.all(),
+                        'productos': productos,
+                        'producto': producto,
+                        'info_flag': 1,
+                        'flag': len(productos),
+                        'id': Compra.objects.get(pk=list(Compra.objects.all())[-1].pk).pk,
+                        'fecha': date.today(),
+                        'subtotal': round(subtotal,2),
+                        'total': round(subtotal * (1 + list(Iva.objects.all())[-1].porcentaje/100),2),
+                        'iva': round(subtotal * (list(Iva.objects.all())[-1].porcentaje/100),2),
+                    }
+                    return render(request, 'addcompra.html', context)
                 else:
                     if len(DetalleCompra.objects.filter(compra=compra,producto=producto)) > 0:
                         detalle = DetalleCompra.objects.get(compra=compra,producto=producto)
@@ -665,34 +935,99 @@ def addpc(request):
                             messages.error(request, 'El precio del producto no puede ser diferente al agregado previamente')
                             messages.error(request, 'Se agregó la cantidad con el precio previamente registrado')
                         detalle.save()
-                        producto.existencia += int(request.POST['cantidad'])
                         producto.save()
                     else:
                         DetalleCompra.objects.create(compra=compra,producto=producto,cantidad=int(request.POST['cantidad']),precio=int(request.POST['precio']))
-                        producto.existencia += int(request.POST['cantidad'])
                         producto.save()
-                    return redirect('addcompra')
+                    subtotal = 0
+                    productos = []
+                    for detalle in DetalleCompra.objects.filter(compra=list(Compra.objects.all())[-1]):
+                        p = Producto.objects.get(pk=detalle.producto.pk)
+                        subtotal += detalle.precio * detalle.cantidad
+                        productos.append({
+                            'producto': p,
+                            'cantidad': detalle.cantidad,
+                            'precio': detalle.precio,
+                            'pc': detalle.precio * detalle.cantidad,
+                        })
+                    context = {
+                        'empleados': Empleado.objects.filter(cargo__in=['Administrador','Almacenista']),
+                        'proveedores': Proveedor.objects.all(),
+                        'productos': productos,
+                        'info_flag': 2,
+                        'flag': len(productos),
+                        'id': Compra.objects.get(pk=list(Compra.objects.all())[-1].pk).pk,
+                        'fecha': date.today(),
+                        'subtotal': round(subtotal),
+                        'total': round(subtotal * (1 + list(Iva.objects.all())[-1].porcentaje/100),2),
+                        'iva': round(subtotal * (list(Iva.objects.all())[-1].porcentaje/100),2),
+                    }
+                    return render(request, 'addcompra.html', context)
             return redirect('addcompra')
         else:
+            producto = Producto.objects.filter(pk=request.POST['producto'])
+            productos = []
+            subtotal = 0
+            for detalle in DetalleCompra.objects.filter(compra=list(Compra.objects.all())[-1]):
+                p = Producto.objects.get(pk=detalle.producto.pk)
+                subtotal += detalle.precio * detalle.cantidad
+                productos.append({
+                    'producto': p,
+                    'cantidad': detalle.cantidad,
+                    'precio': detalle.precio,
+                    'pc': detalle.precio * detalle.cantidad,
+                })
+            context = {
+                'empleados': Empleado.objects.filter(cargo__in=['Administrador','Almacenista']),
+                'proveedores': Proveedor.objects.all(),
+                'productos': productos,
+                'producto': producto[0] if len(producto) > 0 else None,
+                'info_flag': len(producto),
+                'flag': len(productos),
+                'id': Compra.objects.get(pk=list(Compra.objects.all())[-1].pk).pk,
+                'fecha': date.today(),
+                'subtotal': round(subtotal,2),
+                'total': round(subtotal * (1 + list(Iva.objects.all())[-1].porcentaje/100),2),
+                'iva': round(subtotal * (list(Iva.objects.all())[-1].porcentaje/100),2),
+            }
             messages.error(request, 'Completa el formulario de productos por favor')
-            return redirect('addcompra')
+            return render(request, 'addcompra.html', context)
 
 #Eliminar producto de compra
 def delpc(request,pk):
     producto = Producto.objects.get(pk=pk)
     detalle = DetalleCompra.objects.get(compra=list(Compra.objects.all())[-1],producto=producto)
-    producto.existencia -= detalle.cantidad
-    producto.save()
     detalle.delete()
+    producto = Producto.objects.filter(pk=pk)
+    productos = []
+    subtotal = 0
+    for detalle in DetalleCompra.objects.filter(compra=list(Compra.objects.all())[-1]):
+        p = Producto.objects.get(pk=detalle.producto.pk)
+        subtotal += detalle.precio * detalle.cantidad
+        productos.append({
+            'producto': p,
+            'cantidad': detalle.cantidad,
+            'precio': detalle.precio,
+            'pc': detalle.precio * detalle.cantidad,
+        })
+    context = {
+        'empleados': Empleado.objects.filter(cargo__in=['Administrador','Almacenista']),
+        'proveedores': Proveedor.objects.all(),
+        'productos': productos,
+        'producto': producto[0] if len(producto) > 0 else None,
+        'info_flag': len(producto),
+        'flag': len(productos),
+        'id': Compra.objects.get(pk=list(Compra.objects.all())[-1].pk).pk,
+        'fecha': date.today(),
+        'subtotal': round(subtotal,2),
+        'total': round(subtotal * (1 + list(Iva.objects.all())[-1].porcentaje/100),2),
+        'iva': round(subtotal * (list(Iva.objects.all())[-1].porcentaje/100),2),
+    }
     return redirect('addcompra')
 
 #Borrar todos los productos de una compra
 def delallpc(request):
     detalles = DetalleCompra.objects.filter(compra=list(Compra.objects.all())[-1])
-    for detalle in detalles:
-        producto = Producto.objects.get(pk=detalle.producto.pk)
-        producto.existencia -= detalle.cantidad
-        producto.save()
     detalles.delete()
     return redirect('addcompra')
 
@@ -725,12 +1060,12 @@ def comprainfo(request,pk):
             'precio': detalle.precio,
             'pc': detalle.precio * detalle.cantidad,
         })
-    iva = list(Iva.objects.all())[-1]
-    total = subtotal * (1 + iva.porcentaje/100)
+    iva = round(subtotal * list(Iva.objects.all())[-1].porcentaje/100,2)
+    total = round(subtotal * (1 + list(Iva.objects.all())[-1].porcentaje/100),2)
     context = {
         'compra': compra,
         'productos': productos,
-        'subtotal': subtotal,
+        'subtotal': round(subtotal,2),
         'iva': iva,
         'total': total,
     }

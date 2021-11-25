@@ -3,7 +3,8 @@
 {% block content %}
 
 <div class="container">
-    <h2>Nueva venta</h2>
+    <h2>Nueva Venta <b>ID {{id}}</b></h2>
+    <p>Fecha: {{fecha}}</p>
     <hr>
     {% if messages %}
         {% for message in messages %}
@@ -17,8 +18,37 @@
         {% csrf_token %}
         <div class="form-group">
             <h4>ID Producto</h4>
-            <input type="number" class="form-control" placeholder="ID del producto a vender" value="{{ producto }}" name="producto">
+            <input type="number" class="form-control" placeholder="ID del producto a vender" value="{{ producto.id }}" name="producto">
         </div>
+        {% if info_flag == 1 %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Descripción</th>
+                        <th scope="col">Color</th>
+                        <th scope="col">Tamaño</th>
+                        <th scope="col">Existencia</th>
+                        <th scope="col">Precio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="col">{{producto.id}}</th>
+                        <td>{{producto.descripcion}}</td>
+                        <td>{{producto.color}}</td>
+                        <td>{{producto.talla}}</td>
+                        <td>{{producto.existencia}}</td>
+                        <td>{{producto.precio}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        {% elif info_flag == 0 %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                El producto no existe
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endif %}
         <div class="form-group">
             <h4>Cantidad del producto</h4>
             <input type="number" class="form-control" placeholder="Cantidad del producto a vender" value="{{ cantidad }}" name="cantidad">
@@ -26,12 +56,39 @@
         <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Agregar</button>
     </form>
     <hr>
-    <form method="POST" action="">
+    <form method="POST" action="{% url 'addventa' %}">
         {% csrf_token %}
         <div class="form-group">
             <h4>ID Cliente</h4>
-            <input type="number" class="form-control" placeholder="ID del cliente" value="{{ cliente }}" name="cliente">
+            <input type="number" class="form-control" placeholder="ID del cliente" value="{{ cliente.id }}" name="cliente">
         </div>
+        {% if cliente_flag == 1 %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Apellidos</th>
+                        <th scope="col">Correo</th>
+                        <th scope="col">Telefono</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="col">{{cliente.id}}</th>
+                        <td>{{cliente.nombre}}</td>
+                        <td>{{cliente.apellidos}}</td>
+                        <td>{{cliente.correo}}</td>
+                        <td>{{cliente.telefono}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        {% elif cliente_flag == 0 %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                El cliente no existe
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endif %}
         <div class="form-group">
             <h4>Vendedor</h4>
             <select class="form-select" name="vendedor" value="{{ vendedor }}">
@@ -89,6 +146,8 @@
         </tbody>
     </table>
     <p><b>Sub total:</b> ${{subtotal}}</p>
+    <p><b>IVA:</b> ${{iva}}</p>
+    <p><b>Total:</b> ${{total}}</p>
 </div>
 
 {% endblock %}

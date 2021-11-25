@@ -57,6 +57,7 @@ class Venta(models.Model):
     repartidor = models.ForeignKey(Empleado,on_delete=models.SET_NULL,null=True,related_name='repartidor',blank=True)
     direccion = models.CharField(max_length=50,null=True,blank=True)
     status = models.CharField(max_length=50,null=True,blank=True)
+    total = models.FloatField(null=True,blank=True)
 
 class DetalleVenta(models.Model):
     venta = models.ForeignKey(Venta,on_delete=models.CASCADE,null=True,blank=True)
