@@ -248,7 +248,7 @@ def mproduct(request,pk):
         if request.POST['existencia'] == '':
             messages.error(request, 'No se modificó la existencia')
             return redirect('products')
-        if int(existencia) <= 0:
+        if int(existencia) < 0:
             messages.error(request, 'La existencia no puede ser negativa o 0')
             return redirect('mproduct',pk)
         if form.is_valid():
@@ -508,7 +508,7 @@ def addventa(request):
                     return render(request, 'addventa.html', context)
                 venta.direccion = request.POST['direccion']
                 venta.status = 'Preparando entrega'
-                venta.total = round(total,2)
+                venta.total = round(subtotal * (1 + list(Iva.objects.all())[-1].porcentaje/100),2)
                 venta.save()
                 Venta.objects.create()
                 for detalle in DetalleVenta.objects.filter(venta=list(Venta.objects.all())[-2]):
