@@ -419,6 +419,12 @@ def addpb(request):
                         elif int(request.POST['cantidad']) > int(producto.existencia):
                             messages.error(request, 'La cantidad no puede ser mayor a la cantidad registrada')
                             return redirect('addbaja',baja.compra.pk)
+                        al = 0
+                        for p in DetalleBaja.objects.filter(baja=baja, producto=producto):
+                            al += p.cantidad
+                        if int(request.POST['cantidad']) + al > int(DetalleCompra.objects.get(compra=baja.compra, producto=producto).cantidad):
+                            messages.error(request, 'La cantidad no puede ser mayor a la cantidad comprada')
+                            return redirect('addbaja',baja.compra.pk)
                         DetalleBaja.objects.create(producto=producto, cantidad=int(request.POST['cantidad']), baja=baja, motivo=request.POST['motivo'])
                         return redirect('addbaja',baja.compra.pk)
                     else:
@@ -784,8 +790,8 @@ def statusventa(request,pk):
             'cantidad': detalle.cantidad,
             'pc': p.precio * detalle.cantidad,
         })
-    iva = round(subtotal * (list(Iva.objects.all())[-1].porcentaje/100),2)
-    total = round(subtotal * (1 + list(Iva.objects.all())[-1].porcentaje/100),2)
+    iva = round(subtotal * (Iva.objects.filter(fecha_aplicacion__lte=venta.fechaVenta).order_by('-fecha_aplicacion')[0].porcentaje/100),2)
+    total = round(subtotal * (1 + Iva.objects.filter(fecha_aplicacion__lte=venta.fechaVenta).order_by('-fecha_aplicacion')[0].porcentaje/100),2)
     context = {
         'venta': venta,
         'subtotal': round(subtotal,2),
@@ -1060,8 +1066,8 @@ def comprainfo(request,pk):
             'precio': detalle.precio,
             'pc': detalle.precio * detalle.cantidad,
         })
-    iva = round(subtotal * list(Iva.objects.all())[-1].porcentaje/100,2)
-    total = round(subtotal * (1 + list(Iva.objects.all())[-1].porcentaje/100),2)
+    iva = round(subtotal * Iva.objects.filter(fecha_aplicacion__lte=compra.fechaCompra).order_by('-fecha_aplicacion')[0].porcentaje/100,2)
+    total = round(subtotal * (1 + Iva.objects.filter(fecha_aplicacion__lte=compra.fechaCompra).order_by('-fecha_aplicacion')[0].porcentaje/100),2)
     context = {
         'compra': compra,
         'productos': productos,
