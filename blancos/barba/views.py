@@ -790,8 +790,8 @@ def statusventa(request,pk):
             'cantidad': detalle.cantidad,
             'pc': p.precio * detalle.cantidad,
         })
-    iva = round(subtotal * (Iva.objects.filter(fecha_aplicacion__lte=venta.fechaVenta).order_by('-fecha_aplicacion')[0].porcentaje/100),2)
-    total = round(subtotal * (1 + Iva.objects.filter(fecha_aplicacion__lte=venta.fechaVenta).order_by('-fecha_aplicacion')[0].porcentaje/100),2)
+    iva = round(subtotal * (list(Iva.objects.filter(fecha_aplicacion__lte=venta.fechaVenta).order_by('-fecha_aplicacion'))[-1].porcentaje/100),2)
+    total = round(subtotal * (1 + list(Iva.objects.filter(fecha_aplicacion__lte=venta.fechaVenta).order_by('-fecha_aplicacion'))[-1].porcentaje/100),2)
     context = {
         'venta': venta,
         'subtotal': round(subtotal,2),
@@ -1066,8 +1066,8 @@ def comprainfo(request,pk):
             'precio': detalle.precio,
             'pc': detalle.precio * detalle.cantidad,
         })
-    iva = round(subtotal * Iva.objects.filter(fecha_aplicacion__lte=compra.fechaCompra).order_by('-fecha_aplicacion')[0].porcentaje/100,2)
-    total = round(subtotal * (1 + Iva.objects.filter(fecha_aplicacion__lte=compra.fechaCompra).order_by('-fecha_aplicacion')[0].porcentaje/100),2)
+    iva = round(subtotal * list(Iva.objects.filter(fecha_aplicacion__lte=compra.fechaCompra).order_by('-fecha_aplicacion'))[-1].porcentaje/100,2)
+    total = round(subtotal * (1 + list(Iva.objects.filter(fecha_aplicacion__lte=compra.fechaCompra).order_by('-fecha_aplicacion'))[-1].porcentaje/100),2)
     context = {
         'compra': compra,
         'productos': productos,
